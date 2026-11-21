@@ -96,6 +96,8 @@ def detect_type(path: Path) -> Optional[str]:
         return "csv"
     if suffix in (".tif", ".tiff"):
         return "tiff"
+    if suffix in (".gpkg",):
+        return "gpkg"
     return None
 
 
@@ -479,7 +481,8 @@ def _check_csv(path: Path, findings: List[dict], declared_crs: Optional[str] = N
 
 
 # --- TIFF structure validator (byte-level, zero dependencies) -------------
-_TIFF_TYPE_SIZES = {1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8}
+_TIFF_TYPE_SIZES = {1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8,
+                    11: 4, 12: 8}
 _TIFF_REQUIRED_TAGS = {
     256: "ImageWidth", 257: "ImageLength", 258: "BitsPerSample",
     259: "Compression", 262: "Photometric", 273: "StripOffsets",
@@ -544,6 +547,13 @@ def _parse_tiff_ifd(fh) -> Tuple[Optional[Dict[int, tuple]], Optional[str]]:
                 (num, den) for num, den in
                 zip(struct.unpack(e + "I" * (2 * count), data)[::2],
                     struct.unpack(e + "I" * (2 * count), data)[1::2]))
+        elif typ == 11:
+            values = struct.unpack(e + "f" * count, data)
+        elif typ == 12:
+            # DOUBLE: what GDAL/tifffile actually write for ModelPixelScale
+            # and ModelTiepoint — real-world GeoTIFFs carry type 12, and a
+            # validator that cannot read them misses real georeferencing.
+            values = struct.unpack(e + "d" * count, data)
         else:
             values = ()
         entries[tag] = values
@@ -589,8 +599,16 @@ def _check_tiff(path: Path, findings: List[dict]) -> None:
             break
     if _TAG_PIXEL_SCALE in ifd and _TAG_TIEPOINT in ifd:
         tp = ifd[_TAG_TIEPOINT]
-        lon = tp[3][0] / tp[3][1] if len(tp) > 3 else None
-        lat = tp[4][0] / tp[4][1] if len(tp) > 4 else None
+
+        def _num(v):
+            if isinstance(v, tuple) and len(v) == 2:
+                return v[0] / v[1] if v[1] else None
+            if isinstance(v, (int, float)):
+                return float(v)
+            return None
+
+        lon = _num(tp[3]) if len(tp) > 3 else None
+        lat = _num(tp[4]) if len(tp) > 4 else None
         findings.append(_finding(
             "TIFF_GEO_TAGS",
             f"georeferenced raster (pixel scale + tiepoint), origin ~({lon}, {lat})"))
@@ -607,9 +625,14 @@ def validate_file(path: str, dtype: str = "auto",
 
     v0.5.0: when declared_crs/declared_units are provided (from the dataset
     record), declared-vs-observed CRS/units consistency is checked and any
-    contradiction fails validation with an explicit code."""
+    contradiction fails validation with an explicit code.
+
+    v0.6.0: beyond structural checks, real readers (lasio / tifffile /
+    sqlite3) parse the actual content; reader findings merge into the same
+    report and the report carries `reader` (machine-readable facts) and
+    `evidence` ({read, verified, unverifiable}) — the layer must prove
+    what it read, what it verified, and what it cannot confirm."""
     p = Path(path)
-    findings: List[dict] = []
     if not p.exists():
         return {"status": "fail", "file": str(p), "dtype": dtype,
                 "findings": [_finding("GEN_FILE_MISSING", "file does not exist")]}
@@ -618,18 +641,37 @@ def validate_file(path: str, dtype: str = "auto",
                 "findings": [_finding("GEN_EMPTY_FILE", "file is empty")]}
     if dtype == "auto":
         dtype = detect_type(p) or "tiff"
+    from .readers import read_geopackage, read_geotiff, read_las
+
+    reader_report = None
+    findings: List[dict] = []
     if dtype == "las":
         _check_las(p, findings, declared_crs, declared_units)
+        # A file refused at hygiene level is not parseable content — the
+        # reader would only re-read garbage the gate already rejected.
+        fatal = any(f["code"].startswith(("LAS_CONTROL", "LAS_LINE"))
+                    for f in findings)
+        if not fatal:
+            reader_report = read_las(str(p))
     elif dtype == "geojson":
         _check_geojson(p, findings, declared_crs)
     elif dtype == "csv":
         _check_csv(p, findings, declared_crs, declared_units)
     elif dtype == "tiff":
         _check_tiff(p, findings)
+        reader_report = read_geotiff(str(p), declared_crs=declared_crs)
+    elif dtype == "gpkg":
+        reader_report = read_geopackage(str(p), declared_crs=declared_crs)
     else:
         return {"status": "needs_review", "file": str(p), "dtype": dtype,
                 "findings": [_finding("GEN_UNKNOWN_TYPE", f"no validator for type {dtype!r}")]}
+    if reader_report is not None:
+        findings.extend(reader_report["findings"])
     status = "fail" if any(f["severity"] == "error" for f in findings) else "pass"
-    return {"status": status, "file": str(p), "dtype": dtype,
-            "declared_crs": declared_crs, "declared_units": declared_units,
-            "findings": findings}
+    report = {"status": status, "file": str(p), "dtype": dtype,
+              "declared_crs": declared_crs, "declared_units": declared_units,
+              "findings": findings}
+    if reader_report is not None:
+        report["reader"] = reader_report["data"]
+        report["evidence"] = reader_report["evidence"]
+    return report

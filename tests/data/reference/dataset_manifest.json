@@ -1,0 +1,265 @@
+{
+  "schema": "geologia-reference-corpus/1",
+  "generated": "2026-11-21",
+  "doc": "كل ملف هنا مرتبط بقيم متوقعة مجمّدة؛ أي انحراف بين القراءة والمتوقع يفشل الاختبار المرجعي مباشرة",
+  "files": {
+    "ref_dem_utm38n_msl.tif": {
+      "kind": "geotiff",
+      "sha256": "e8c058c6be3dfc4016c7aa268d9394c23089b95f069f72ffd5df60d9294d269f",
+      "bytes": 512,
+      "expected": {
+        "status": "pass",
+        "codes_min": [
+          "TIFF_OK",
+          "TIFF_GEO_TAGS",
+          "VERT_DATUM_OK"
+        ],
+        "reader": {
+          "shape": [
+            4,
+            4
+          ],
+          "dtype": "float32",
+          "crs_epsg": 32638,
+          "extent": {
+            "minx": 305000.0,
+            "miny": 2739900.0,
+            "maxx": 305100.0,
+            "maxy": 2740000.0
+          }
+        },
+        "vertical": {
+          "cs": 5714,
+          "datum": 3,
+          "units": 9001
+        }
+      }
+    },
+    "ref_dem_geo_wgs84.tif": {
+      "kind": "geotiff",
+      "sha256": "6c4f00304f0ba21e2a5bdf1ee195d8e60e68cd556470076e47efbe1d4438ee82",
+      "bytes": 464,
+      "expected": {
+        "status": "pass",
+        "codes_min": [
+          "TIFF_OK",
+          "VERT_DATUM_MISSING"
+        ],
+        "reader": {
+          "shape": [
+            4,
+            4
+          ],
+          "dtype": "float32",
+          "crs_epsg": 4326
+        },
+        "vertical": null
+      }
+    },
+    "ref_dem_unknown_vertical.tif": {
+      "kind": "geotiff",
+      "sha256": "7365c44957ec6b024c225f2ec69d81635a8f8a79d309dc91566c6985c3074087",
+      "bytes": 512,
+      "expected": {
+        "status": "pass",
+        "codes_min": [
+          "VERT_DATUM_UNKNOWN"
+        ],
+        "reader": {
+          "crs_epsg": 32638
+        },
+        "vertical": {
+          "cs": 62000,
+          "datum": 3,
+          "units": 9001
+        }
+      }
+    },
+    "ref_dem_foot_units.tif": {
+      "kind": "geotiff",
+      "sha256": "1371ca9bd5675f7ce308971f80b3203bfc30b4755cdee5f736bcfc8c4f23134f",
+      "bytes": 512,
+      "expected": {
+        "status": "pass",
+        "codes_min": [
+          "VERT_UNITS_NOT_METRE"
+        ],
+        "reader": {
+          "crs_epsg": 32638
+        },
+        "vertical": {
+          "cs": 5714,
+          "datum": 3,
+          "units": 9002
+        }
+      }
+    },
+    "ref_dem_truncated.tif": {
+      "kind": "geotiff",
+      "sha256": "a0617e9b16dd46ada5a72ae501a39f226a20aa89d47c14ff81566fed178c5508",
+      "bytes": 452,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "TIFF_TRUNCATED"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    },
+    "ref_gpkg_wells.gpkg": {
+      "kind": "gpkg",
+      "sha256": "79951a1fb2c2483a10ea3d2cd085490048e31b2b9725a974541ee4bf6eaec0b5",
+      "bytes": 32768,
+      "expected": {
+        "status": "pass",
+        "codes_min": [
+          "GPKG_FEATURE_COUNT_VERIFIED",
+          "GPKG_SRS_ENGINE_VERIFIED",
+          "GPKG_CONTENTS_BBOX_VERIFIED"
+        ],
+        "reader": {
+          "features": {
+            "wells": {
+              "count": 4
+            }
+          },
+          "srs_count": 4
+        },
+        "vertical": null
+      }
+    },
+    "ref_gpkg_bad_magic.gpkg": {
+      "kind": "gpkg",
+      "sha256": "2ea80fb5eb948d6b96d9ac1ac7be9e2e150c9dbd272ec18b2ef52bafdb16b9a1",
+      "bytes": 32768,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "GPKG_NOT_GPKG"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    },
+    "ref_gpkg_no_meta.gpkg": {
+      "kind": "gpkg",
+      "sha256": "c16ac0a12459ed76ff3550cffbef55f7ca4f40983183a8b376a61cd886bafa92",
+      "bytes": 12288,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "GPKG_MISSING_META_TABLES"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    },
+    "ref_gpkg_geom_bad.gpkg": {
+      "kind": "gpkg",
+      "sha256": "1c031c355f3daeb497d936112c8cab20a04e999eee062d93ec70a4146054f7f9",
+      "bytes": 32768,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "GPKG_GEOM_MAGIC_INVALID"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    },
+    "ref_gpkg_srs_mismatch.gpkg": {
+      "kind": "gpkg",
+      "sha256": "8dfe7b505cabcce6c77d036bb0c11421a679ce96119ad223bed5b2365d034759",
+      "bytes": 32768,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "GPKG_GEOM_SRS_MISMATCH"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    },
+    "ref_gpkg_bbox_lie.gpkg": {
+      "kind": "gpkg",
+      "sha256": "590418da616872a498eb7da8b204887b1014a9d5953fa8a007b0978c14dc40a2",
+      "bytes": 32768,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "GPKG_CONTENTS_BBOX_MISMATCH"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    },
+    "ref_las_valid.las": {
+      "kind": "las",
+      "sha256": "aa77c6d6e471c5c9555d38d536b8c7bbe03634cf9784c7d5a4e50f23cedbd806",
+      "bytes": 545,
+      "expected": {
+        "status": "pass",
+        "codes_min": [
+          "LAS_OK",
+          "LAS_READER_ROWS_VERIFIED",
+          "LAS_READER_NULL_HONORED",
+          "VERT_DEPTH_DATUM_UNDECLARED"
+        ],
+        "reader": {
+          "rows": 6,
+          "curves": [
+            "DEPT",
+            "RHOB",
+            "NPHI"
+          ],
+          "null": -999.25
+        },
+        "vertical": null
+      }
+    },
+    "ref_las_rows_lie.las": {
+      "kind": "las",
+      "sha256": "28985548d8260275c7d7981a7c58a9b842e888314454fc2267e1f053b9f6f7cf",
+      "bytes": 497,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "LAS_DATA_ROWS_MISMATCH",
+          "LAS_READER_ROWS_MISMATCH"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    },
+    "ref_las_no_units.las": {
+      "kind": "las",
+      "sha256": "8a58995a3a383a18200e67c7d9b3d48f82306b62d82cc85d02f429313c00ba20",
+      "bytes": 557,
+      "expected": {
+        "status": "pass",
+        "codes_min": [
+          "LAS_CURVE_UNIT_MISSING"
+        ],
+        "reader": {
+          "rows": 6
+        },
+        "vertical": null
+      }
+    },
+    "ref_las_truncated.las": {
+      "kind": "las",
+      "sha256": "49c65eae84dc4403c702292d62bb630b4645b8ac99219923d3303b1630a3d404",
+      "bytes": 517,
+      "expected": {
+        "status": "fail",
+        "codes_min": [
+          "LAS_DATA_ROWS_MISMATCH",
+          "LAS_READER_ROWS_MISMATCH"
+        ],
+        "reader": null,
+        "vertical": null
+      }
+    }
+  }
+}

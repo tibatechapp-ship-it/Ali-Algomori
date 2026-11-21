@@ -22,6 +22,36 @@ from geologia.data_layer.reception import (
     strip_tiff_auxiliary_tags,
 )
 from geologia.data_layer.validators import validate_file
+from geologia.data_layer.evidence import (
+    compile_evidence,
+    ev_read,
+    ev_unverifiable,
+    ev_verified,
+    prove_file,
+)
+from geologia.data_layer.readers import (
+    capabilities,
+    parse_geokeys,
+    read_geopackage,
+    read_geotiff,
+    read_las,
+)
+from geologia.data_layer.provenance import (
+    ProvenanceLog,
+    default_log_path,
+    ref_file,
+    tool_versions,
+)
+from geologia.data_layer.reference import (
+    load_transformations,
+    transformations_fingerprint,
+    verify_reference_dir,
+    verify_transformations,
+)
+from geologia.data_layer.vertical import (
+    classify_vertical_geokeys,
+    vertical_findings,
+)
 
 __all__ = [
     "register_dataset", "list_datasets", "get_dataset", "validate_dataset",
@@ -29,4 +59,13 @@ __all__ = [
     "get_task", "transition", "TaskGateError",
     "check_upload", "sanitize_filename", "scan_archive",
     "scan_tiff_metadata", "sniff_content", "strip_tiff_auxiliary_tags",
+    # v0.6.0: proof layer — what was read, what was verified, what cannot
+    # be confirmed; real readers; provenance; frozen references.
+    "compile_evidence", "ev_read", "ev_verified", "ev_unverifiable",
+    "prove_file", "capabilities", "parse_geokeys", "read_las",
+    "read_geotiff", "read_geopackage", "ProvenanceLog", "tool_versions",
+    "ref_file", "default_log_path", "load_transformations",
+    "verify_transformations", "verify_reference_dir",
+    "transformations_fingerprint", "classify_vertical_geokeys",
+    "vertical_findings",
 ]

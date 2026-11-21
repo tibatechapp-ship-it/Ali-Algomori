@@ -42,3 +42,38 @@ test_reception.py) فأي تغيير في السلوك يكسر الاختبار
 اختبار كل حالة يثبت **رمز الرفض الدقيق** — الفشل العام غير مقبول كعقد.
 ونجاح CI لا يعني صحة النتائج الجيولوجية: الصحة العلمية اختصاص الاختبارات
 المرجعية المثبتة خلف بوابة `certified` (ADR-0004/0005).
+
+## المجموعة المرجعية المجمدة (v0.6.0 — `tests/data/reference/`)
+
+ليست مجرد ملفات تالفة: كل ملف مرتبط بنتائج متوقعة مجمّدة في
+`dataset_manifest.json` (بصمة sha256، الحجم، الحالة، الرموز الإلزامية،
+حقول القارئ، التصنيف الرأسي)، ويُعاد إثباتها باختبار مرجعي معلمي.
+تُبنى حصراً بـ`scripts/make_reference_corpus.py` (يتطلب lasio/tifffile/pyproj)
+— والقيم المتوقعة ثوابت صريحة في المولّد، والقراءة وقت البناء للتأكيد فقط.
+أي انحراف بايت في المجموعة يكشفه الـmanifest (`REF_HASH_MISMATCH`).
+
+| الملف | البنية | النتيجة المجمّدة |
+| ----- | ------ | ----------------- |
+| ref_dem_utm38n_msl.tif | GeoTIFF مسقط UTM38N + MSL حقيقي | pass؛ امتداد مجمد، CRS 32638، VERT_DATUM_OK (5714/3/9001) |
+| ref_dem_geo_wgs84.tif | جغرافي بلا مرجع رأسي | pass؛ VERT_DATUM_MISSING (ارتفاع غير مثبت) |
+| ref_dem_unknown_vertical.tif | رمز رأسي خارج الجدول (62000) | pass؛ VERT_DATUM_UNKNOWN |
+| ref_dem_foot_units.tif | وحدات رأسية بالأقدام (9002) | pass؛ VERT_UNITS_NOT_METRE |
+| ref_dem_truncated.tif | قصّ 60 بايتاً | fail؛ TIFF_TRUNCATED |
+| ref_gpkg_wells.gpkg | GeoPackage سليم، 4 آبار، srs 32638 | pass؛ عدّ ومغلفات وSRS تتحقق بمحرك pyproj |
+| ref_gpkg_bad_magic.gpkg | application_id ليس GPKG | fail؛ GPKG_NOT_GPKG |
+| ref_gpkg_no_meta.gpkg | بلا جداول الميتاداتا | fail؛ GPKG_MISSING_META_TABLES |
+| ref_gpkg_geom_bad.gpkg | هندسة بلا سحر GP | fail؛ GPKG_GEOM_MAGIC_INVALID |
+| ref_gpkg_srs_mismatch.gpkg | ترويسة هندسة srs مختلف | fail؛ GPKG_GEOM_SRS_MISMATCH |
+| ref_gpkg_bbox_lie.gpkg | bbox معلن كاذب | fail؛ GPKG_CONTENTS_BBOX_MISMATCH |
+| ref_las_valid.las | سجل آبار سليم 2.0 | pass؛ 6 صفوف، منحنيات ووحدات مجمدة، NULL مطبق |
+| ref_las_rows_lie.las | رأس يقول 6 وبيانات 4 | fail؛ LAS_DATA_ROWS_MISMATCH + LAS_READER_ROWS_MISMATCH |
+| ref_las_no_units.las | منحنى بلا وحدة | pass؛ LAS_CURVE_UNIT_MISSING |
+| ref_las_truncated.las | قصّ في منتصف الصف الأخير | fail؛ mismatch على مستوى النص والقارئ معاً |
+
+### المبدأ الثابت لهذه المجموعة
+
+مجموعة المرجع تصدّق مسارات الكود وسلوك المدققين — لا صحة الجيولوجيا نفسها
+(بند `REF_CORPUS_SCOPE` غير قابل للتأكيد ويظهر في كل تقرير مرجعي). ونقاط
+التحكم المجمدة للتحويلات في `src/geologia/data/reference/transformations.json`
+(الرياض/جدة/الدمام + دورة عكسية) هي الوحيدة المشحونة مع الحزمة، وخلاف
+المحرك معها `XFORM_MISMATCH` خطأ صارم: المرجع لا يُعاير على المحرك.

@@ -2,6 +2,96 @@
 
 التنسيق مستوحى من Keep a Changelog، والإصدارات تتبع [Semver](https://semver.org/lang/ar/).
 
+## [0.6.0] — 2026-11-22
+
+**طبقة الإثبات**: قرّاء حقيقيون + أدلة ثلاثية المستويات + سجل مصدر مضاد
+للتلاعب + مرجع مجمد للتحويلات. قرار المالك الملزم: «لن ننتقل إلى GemPy أو
+MODFLOW حتى تصبح طبقة البيانات قادرة على إثبات ما قرأته، وما تحققت منه، وما
+لا تستطيع تأكيده». كل التفاصيل في
+[ADR-0006](docs/adr/0006-real-readers-evidence-provenance.md).
+
+### إضافات — القرّاء الحقيقيون `data_layer/readers.py`
+
+- `read_las()` عبر **lasio**: قراءة فعلية لسجلات الآبار — الإصدار، الصفوف،
+  المنحنيات ووحداتها، NULL المطبّق فعلاً؛ تحقق مستقل من عدد الصفوف بجبر
+  STRT/STOP/STEP (`LAS_READER_ROWS_MISMATCH`)، رفض البيانات غير العددية
+  (`LAS_READER_NON_NUMERIC` — NUL يصير رفضاً لا انهياراً)، منحنى بلا وحدة
+  تحذير معلن (`LAS_CURVE_UNIT_MISSING`)، واعتراف صريح أن LAS 1.2/2.0 لا يحمل
+  CRS ولا مرجع عمق (`CRS_NONE_DECLARED`, `VERT_DEPTH_DATUM_UNDECLARED`
+  كأدلة غير قابلة للتأكيد).
+- `read_geotiff()` عبر **tifffile**: GeoKeys محللة وفق المواصفة (القيمة داخل
+  حقل offset نفسه عند location=0)، إعادة حساب مستقلة للامتداد من
+  ModelTiepoint+ModelPixelScale (`TIFF_EXTENT_RECOMPUTED`)، مرجع رأسي معترف
+  من جدول مغلق (`VERT_DATUM_OK/UNKNOWN/MISSING`,
+  `VERT_UNITS_NOT_METRE`)، تعارض CRS المعلن مع GeoKeys خطأ
+  (`CRS_READER_MISMATCH`)، وnodata مقروءة.
+- `read_geopackage()` عبر **sqlite3** بفحوص مواصفة OGC: application_id
+  (`GPKG_NOT_GPKG`)، قاعدة تالفة (`GPKG_CORRUPT_DB`)، جداول الميتاداتا
+  الإلزامية (`GPKG_MISSING_META_TABLES`)، ترويسة GeoPackageBinary: سحر GP
+  (`GPKG_GEOM_MAGIC_INVALID`) وتعارض srs_id (`GPKG_GEOM_SRS_MISMATCH`)،
+  تعارض bbox المعلن مع مغلفات الهندسة الحقيقية
+  (`GPKG_CONTENTS_BBOX_MISMATCH`)، تعارض تعريف SRS مع EPSG المنظم
+  (`CRS_SRS_DEFINITION_MISMATCH`)، والتعريفات تتحقق بمحرك pyproj عند وجوده.
+- `capabilities()`: إصدارات كل المحركات أو None — غياب الأداة يعطي
+  `READER_LIB_ABSENT` وبند أدلة غير قابل للتأكيد، لا قراءة مزيفة. المكتبات
+  في extra اختياري `[geo]` — مسار Termux النقي سليم.
+
+### إضافات — نموذج الأدلة `data_layer/evidence.py`
+
+- ثلاثية ملزمة: `read` / `verified` (بفحص مسمّى) / `unverifiable` (بسبب
+  محدد) — الشكل يُنفذ وقت التجميع، وادعاء بلا تسمية خطأ صرف.
+- `prove_file()`: تقرير إثبات كامل (تحقق صيغة + أدلة + هوية sha256) بحكم
+  صادق رباعي: `refused` / `proven` / `proven_with_unverified_claims` —
+  الفجوات تُعلن لا تُطوى، وإثبات حدث ما يُلحق بسجل المصدر اختيارياً.
+
+### إضافات — سجل المصدر `data_layer/provenance.py`
+
+- `ProvenanceLog`: JSONL للإلحاق فقط؛ كل سجل: الزمن UTC، لقطة
+  `tool_versions()` (python/geologia/pydantic/lasio/tifffile/pyproj/numpy/
+  sqlite3)، المدخلات ببصماتها، المخرجات، الحكم؛ سلسلة هاشات `record_hash` +
+  `parent_hash` حتى جذر `000…0`.
+- `verify()`: يكشف تعديل سجل (`PROV_HASH_MISMATCH`) وحذف/إدراج/إعادة ترتيب
+  (`PROV_CHAIN_BROKEN`, `PROV_SEQ_GAP`) — سجل يثبت التلاعب، لا blockchain
+  للهوية.
+
+### إضافات — المرجع المجمد `data_layer/reference.py`
+
+- `transformations.json` شحنة الحزمة: نقاط تحكم مجمّدة (الرياض→UTM38N،
+  جدة→UTM37N، الدمام→UTM39N، ودورة الرياض العكسية) بتذاوت mm ودرجات —
+  transverse mercator بلا شبكات إزاحة (حتمية عبر إصدارات PROJ). خلاف
+  المحرك مع المرجع `XFORM_MISMATCH` خطأ صارم؛ غياب pyproj يعطي
+  `XFORM_ENGINE_ABSENT` غير قابل للتأكيد — لا مرور بصمت.
+- `verify_reference_dir()`: الـmanifest يثبت sha256 وحجم كل ملف مرجعي؛ أي
+  انجراف بايت `REF_HASH_MISMATCH` وكل ملف مفقود `REF_FILE_MISSING`، وبند
+  صدق دائم: المجموعة تصدّق مسارات الكود لا الجيولوجيا (`REF_CORPUS_SCOPE`).
+
+### إضافات — المرجع الرأسي `data_layer/vertical.py`
+
+- جدول مغلق لأنظمة الإسناد الرأسية (4979، 5703، 5714، 3855، 5621)، دلالات
+  GeoTIFF 4096/4097/4098، وحدات الرأسية، VERTCS في WKT، وكشف تعارض الادعاءين
+  (`VERT_DATUM_CONFLICT` خطأ) — والارتفاع بلا مرجع يبقى `VERT_DATUM_MISSING`
+  غير قابل للتأكيد، لا افتراض MSL صامتاً.
+
+### إصلاحات
+
+- الفاحص البنيوي لـTIFF لم يكن يقرأ وسوم DOUBLE (النوع 12) التي يكتبها GDAL
+  فعلياً — امتداد حقيقي كان سيفوت على ملفات إنتاجية؛ أُصلح وأضيف النوع 11
+  (FLOAT) مع دعم القيم النسبية والفاصلة العائمة في TIFF_GEO_TAGS.
+- `detect_type` الآن يتعرف على `.gpkg` بدل GEN_UNKNOWN_TYPE.
+
+### الاختبارات
+
+- 147 → **250 اختباراً**: مجموعة مرجعية من 15 ملفاً (GeoTIFF سليم/مبتور/
+  مرجع رأسي مجهول/وحدات أقدام — GeoPackage سليم/سحر فاسد/ميتاداتا ناقصة/
+  هندسة فاسدة/srs متضارب/bbox كاذب — LAS سليم/عدد كاذب/بلا وحدات/مبتور)
+  مربوطة بـ`dataset_manifest.json` بنتائج متوقعة مجمّدة (بصمة، حجم، حالة،
+  رموز إلزامية، حقول قارئ، تصنيف رأسي)؛ اختبارات القرّاء المستقلة، وسلسلة
+  هجمات تلاعب على سجل المصدر، وإعادة إثبات التحويلات، وتنفيذ شكل الأدلة.
+- مولّد المجموعة `scripts/make_reference_corpus.py` يؤكد ذاتياً أن القرّاء
+  يقرؤون ما بُني قبل تجميد الـmanifest — القيم المتوقعة ثوابت صريحة لا قيم
+  مقروءة.
+
+
 ## [0.5.0] — 2026-11-22
 
 **بوابة أمان استقبال الملفات + التحقق العلمي المعلن-مقابل-الملاحظ.** قرار المالك

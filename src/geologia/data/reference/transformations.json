@@ -1,0 +1,64 @@
+{
+  "schema": "geologia-reference-transformations/1",
+  "frozen": "2026-11-22",
+  "frozen_with": {
+    "pyproj": "3.8.0",
+    "proj": "9.8.1"
+  },
+  "note": "Expected values are frozen, hand-reviewed control points. These are plain transverse-mercator conversions with no datum-shift grids involved, so they are deterministic across PROJ versions. A mismatch beyond tolerance is a hard error: the layer must refuse to trust its transformation engine, not adjust the reference.",
+  "tolerance_note": "Forward checks: metres, tolerance 0.001 m (mm-level frozen values). Round-trip check: degrees, tolerance 1e-7 (closure of a full forward+inverse cycle).",
+  "transformations": [
+    {
+      "name": "riyadh_wgs84_to_utm38n",
+      "kind": "forward",
+      "from_crs": "EPSG:4326",
+      "to_crs": "EPSG:32638",
+      "x": 46.6753,
+      "y": 24.7136,
+      "expected_x": 669459.62161,
+      "expected_y": 2734271.671842,
+      "tol": 0.001,
+      "tol_unit": "m",
+      "place": "Riyadh, Kingdom of Saudi Arabia"
+    },
+    {
+      "name": "jeddah_wgs84_to_utm37n",
+      "kind": "forward",
+      "from_crs": "EPSG:4326",
+      "to_crs": "EPSG:32637",
+      "x": 39.1925,
+      "y": 21.4858,
+      "expected_x": 519940.873673,
+      "expected_y": 2375926.267654,
+      "tol": 0.001,
+      "tol_unit": "m",
+      "place": "Jeddah, Kingdom of Saudi Arabia"
+    },
+    {
+      "name": "dammam_wgs84_to_utm39n",
+      "kind": "forward",
+      "from_crs": "EPSG:4326",
+      "to_crs": "EPSG:32639",
+      "x": 50.1039,
+      "y": 26.4207,
+      "expected_x": 410640.020553,
+      "expected_y": 2922586.013831,
+      "tol": 0.001,
+      "tol_unit": "m",
+      "place": "Dammam, Kingdom of Saudi Arabia"
+    },
+    {
+      "name": "riyadh_utm38n_to_wgs84_roundtrip",
+      "kind": "roundtrip",
+      "from_crs": "EPSG:32638",
+      "to_crs": "EPSG:4326",
+      "x": 669459.62161,
+      "y": 2734271.671842,
+      "expected_x": 46.6753,
+      "expected_y": 24.7136,
+      "tol": 1e-07,
+      "tol_unit": "deg",
+      "place": "Riyadh round-trip closure: forward then inverse must return the original point"
+    }
+  ]
+}
