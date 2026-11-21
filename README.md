@@ -1,133 +1,201 @@
-# GEOLOGIA — جيولوجيا
+<div align="center">
 
-**Geoscience Intelligence Platform** · منصة ذكاء جيولوجي مفتوحة المصدر — عربي / English
-يقودها الوكيل الرئيسي **«المهندس الجمهوري»** (Chief Geoscience Agent).
+# GEOLOGIA · الجيولوجيا
 
-> **الحالة الحالية: المرحلة 0.7.0 — حدود الاستقبال عبر HTTP + مراجعة علمية مستقلة للمراجع**
-> لا يوجد أي محرك طرف ثالث مثبت أو مدمج بعد، واعتماده مرفوض في الكود حتى دورة حياة كاملة.
-> ما يعمل الآن: نواة API + سجل محركات (عائلتان) + مخطّط حتمي (9 مجالات) + **طبقة معرفة
-> استرجاعية بلا هلوسة** + **بوابة استقبال آمنة** (حدود حجم، تفتيش بايتات سحرية، أمان
-> أرشيفات بلا استخراج، تعقيم أسماء بعلامات bidi) + **طبقة تحقق معلن-مقابل-ملاحظ**
-> (بصمات + مدقق LAS/GeoJSON/CSV/TIFF/GPKG + فحص CRS والوحدات المعلنة ضد المحتوى الفعلي)
-> + **نقطة رفع حية `/api/v1/uploads`**: جسم خام، سقف مزدوج، حجر صحي خام غير قابل للتعديل،
-> سجل مصدر لكل حكم حتى الرفض ([ADR-0007](docs/adr/0007-http-upload-boundary.md))
-> + **طبقة إثبات**: قرّاء حقيقيون (lasio/tifffile/sqlite3) + أدلة ثلاثية المستويات +
-> سجل مصدر مضاد للتلاعب + **مرجع مجمّد مستقل عن المحرك** (معادلات EPSG:3857 المنشورة
-> بلا pyproj + جدول رأسي مثبت على سجل EPSG)
-> + **سجل مهام ببوابات إلزامية وعزل** + **مسار اعتماد `certified` بأول محرك علمي
-> أول-الطرف (`porosity_density_v1`)** — وفق [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md)
-> و[ADR-0005](docs/adr/0005-file-reception-security.md):
-> **نجاح CI ليس شهادة صحة النتائج الجيولوجية** — الأمان والصلاحية والصحة العلمية
-> ثلاث شهادات منفصلة، وكل واحدة بدليلها.
+**Geoscience Intelligence Platform — evidence first, always.**
+**منصة الذكاء الجيولوجي — الدليل أولاً، دائماً.**
 
-## القواعد العلمية الملزمة
+**English** | [العربية](#arabic--العربية)
 
-1. لا يختلق النظام نتائج، ولا يدّعي تشغيل محرك لم يعمل فعليًا.
-2. الاحتمال ليس حقيقة: أي نسبة ثقة تحتاج نموذجًا معايرًا وبيانات مستقلة.
-3. لا توصية بحفر بئر اعتمادًا على خريطة وحدها.
-4. كل نتيجة قابلة للتتبع: البيانات، المحرك، الإصدار، المعلمات، المخرجات.
-5. عزل المحركات: لا بيئة Python واحدة تجمع كل الاعتماديات.
+</div>
 
-## التشغيل السريع / Quickstart
+> [!IMPORTANT]
+> **Under active construction.** GEOLOGIA is being built in the open and needs
+> scientific reviewers, licensed data, engineers, and institutional partners.
+> Rights are fully reserved — copying or commercial use requires a written
+> license from the project owner. See [SUPPORT.md](SUPPORT.md) · [LICENSE.md](LICENSE.md)
+>
+> **قيد الإنشاء الفعلي.** المشروع يحتاج مراجعين علميين وبيانات مرخصة ومهندسين
+> وشركاء مؤسسيين. حقوق الابتكار محفوظة — الاستنساخ والاستخدام التجاري ممنوعان
+> إلا بترخيص كتابي من المالك.
+
+![version](https://img.shields.io/badge/version-0.8.1-3b6e4f) ![tests](https://img.shields.io/badge/tests-389_passing_%2F_12_skipped-2ea44f) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
+
+---
+
+## What is GEOLOGIA?
+
+A geoscience intelligence platform led by a chief scientific agent — **Ali** —
+orchestrating **nine specialist roles** (stratigraphy, tectonics, mineralogy,
+petrology, geophysics, geochemistry, hydrogeology, GeoAI & GIS, scientific review).
+It is designed to be a **knowledge and practice link**: the same platform serves
+classrooms, research centers, and companies — from a student's first query to a
+certified engine execution with a full evidence report.
+
+Three principles make it unlike any other platform in its class:
+
+1. **No fabricated results.** Every answer carries an explicit truth class:
+   *documented with citation*, *inferential with declared reasoning and sources*,
+   or *"cannot be confirmed from the library."* Honest silence beats fluent nonsense.
+2. **CI success is not a certificate of geological truth.** Security, validity, and
+   scientific correctness are three separate certifications — each with its own
+   evidence, enforced in code.
+3. **Retrieval-only knowledge.** No generation from thin air (ADR-0002): the
+   knowledge layer cites or refuses, and third-party engines are refused at the
+   code level until they pass a full certification lifecycle.
+
+## What works today (v0.8.1)
+
+| Capability | Status |
+| --- | --- |
+| API core + deterministic planner (9 domains) | Stable, tested |
+| Secure intake gate — size caps, magic-byte inspection, archive safety without extraction, bidi-safe names | Stable ([ADR-0005](docs/adr/0005-file-reception-security.md)) |
+| Live upload endpoint `/api/v1/uploads` with raw quarantine + tamper-evident provenance | Stable ([ADR-0007](docs/adr/0007-http-upload-boundary.md)) |
+| Evidence layer — real readers (lasio/tifffile/sqlite3), declared-vs-observed CRS & units checks, frozen independent reference engine | Stable |
+| First-party certified engine `porosity_density_v1` with gates + tamper detection at execution | Stable ([standard](docs/ACCEPTANCE_STANDARD.md)) |
+| Official geodetic registries — EGM96 ↔ EPSG:5773, EGM2008 ↔ EPSG:3855 (PR #7 mirror, 8 acceptance gates recorded, no embedded grid) | Stable |
+| Knowledge foundation — institutions, knowledge-unit schema v1, license×purpose matrix, multilingual terms | Stable (T1) |
+| Frozen golden evaluation — 40 golden + 10 negative + 5 fake references, deterministic audit, 9 agent cards | Stable (T3) |
+| Geospatial analysis, 3D modelling, MODFLOW | **Deliberately locked** behind the trusted-data phase ([ROADMAP](docs/ROADMAP.md)) |
+
+## Quickstart
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest -q
 
-# واجهة سطر الأوامر — بلا خادم:
+geologia about                      # project status, support & rights notice
 geologia plan "حلل المياه الجوفية حول حوض صنعاء"
-geologia domains
-geologia engines --domain geophysics
 geologia knowledge search "من بدأ علم الجيولوجيا في التاريخ؟"
-geologia verify سجل_البئر.las --type las
-geologia dataset add "سجل بئر" سجل_البئر.las --dtype las
-geologia task create "مسامية بئر صنعاء" porosity_density_v1 ds-ab12cd34ef56 --param rho_ma_gcm3=2.65
-geologia certify porosity_density_v1    # بوابة 3: مرجع مثبت + بصمة المدخل
-geologia task go task-... inputs_validated && geologia task go task-... ready
-geologia task execute task-...          # كشف العبث لحظة التنفيذ + تقرير الأدلة
-geologia task report task-...           # المدخلات + الاستشهادات + ±1σ + حدود الصلاحية
+geologia verify well_log.las --type las
+geologia dataset add "صنعاء بئر-01" well_log.las --dtype las
+geologia task create "porosity" porosity_density_v1 ds-ab12cd34ef56 --param rho_ma_gcm3=2.65
 geologia serve --port 8000
 ```
 
-### Termux (أندرويد — بدون Rust)
+<details>
+<summary><strong>Termux (Android — no Rust toolchain required)</strong></summary>
 
 ```bash
-pkg install -y python git gh
-pip install "pydantic<2" "fastapi<0.128"   # نسخ نقية بايثون تعمل على أندرويد
+pkg install -y python git
+pip install "pydantic<2" "fastapi<0.128"   # pure-Python builds for Android
 pip install -e ".[dev]"
 pytest -q
 ```
 
-أداة الفحص Ruff اختيارية على الهاتف: `pkg install ruff` ثم `ruff check .`
-( CI يشغّلها دائمًا على الخادم ).
+The full test suite is green on the pure-Python path — a deliberate design choice
+for regions with limited compute infrastructure.
+</details>
 
-## نقاط النهاية / Endpoints
+## Documentation map
 
-| Method | Path | الوظيفة |
-| ------ | ---- | ------- |
-| GET | `/health` | حالة الخدمة + عدد المحركات المعتمدة فعلاً (ديناميكي) |
-| GET | `/api/v1/engines` | سجل المحركات: 30 طرفاً ثالثاً + الأولى-الطرف (`?domain=` للفلترة) |
-| GET | `/api/v1/engines/{id}` | بطاقة محرك واحدة |
-| POST | `/api/v1/engines/{id}/certify` | **بوابة 3**: إعادة الاختبار المرجعي المثبت — 409 لرفض الطرف الثالث وعبث المرجع |
-| GET | `/api/v1/domains` | المجالات التحليلية التسعة بعدد محركاتها ومدخلاتها |
-| POST | `/api/v1/plans` | خطة تحليل حتمية؛ **422 مع قائمة المجالات المدعومة** إن لم يُعرف مجال |
-| GET | `/api/v1/knowledge/stats` · `/catalog` | حجم المكتبة وكتالوجها بحالات ثقة مدخلاتها |
-| POST | `/api/v1/knowledge/query` | **استرجاع فقط**: مقطع مخزن باستشهاده أو «ليس في المكتبة» |
-| POST | `/api/v1/datasets` · `GET /api/v1/datasets` | تسجيل مجموعة بيانات حقيقية بهوية sha256 |
-| POST | `/api/v1/datasets/{id}/validate` · `/verify-checksum` | تحقق صيغة (TIFF بنيوي) + تحقق بصمة ضد العبث |
-| GET | `/api/v1/datasets/{id}/proof` | **إعادة إثبات حية**: ثلاثية أدلة جديدة من البايتات الحية + سجل مصدر جديد |
-| GET | `/api/v1/uploads/policy` | عقد الاستقبال قبل إرسال بايت: السقف، الحاجات، الأحكام |
-| POST | `/api/v1/uploads` | **بوابة الرفع الحية**: جسم خام + سقف مزدوج + حجر صحي + إثبات ثلاثي + provenance لكل حكم حتى الرفض |
-| POST | `/api/v1/tasks` · `GET /api/v1/tasks` | سجل مهام بمواصفة عزل |
-| POST | `/api/v1/tasks/{id}/transition` | انتقال محكوم بالبوابات؛ التنفيذ **409** قبل بوابة `certified` |
-| POST | `/api/v1/tasks/{id}/execute` | تنفيذ المحرك المعتمد فقط + كشف عبث لحظة التنفيذ |
-| GET | `/api/v1/tasks/{id}/report` | **بوابة 4**: تقرير الأدلة (مدخلات، استشهادات، ±1σ، حدود صلاحية) |
+| Document | Content |
+| --- | --- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layered architecture & engine isolation |
+| [docs/ACCEPTANCE_STANDARD.md](docs/ACCEPTANCE_STANDARD.md) | The binding acceptance standard (certification) |
+| [docs/DATA_GOVERNANCE.md](docs/DATA_GOVERNANCE.md) | Data governance |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Gate-based roadmap (not calendar-based) |
+| [docs/adr/](docs/adr/) | All decisions, ADR-0001 → ADR-0008 |
+| [docs/ASSESSMENT.md](docs/ASSESSMENT.md) | Honest self-assessment: strengths, weaknesses, fixes |
+| [docs/benchmark/COMPETITIVE_MATRIX.md](docs/benchmark/COMPETITIVE_MATRIX.md) | Global comparison vs 14 platforms (open & closed) |
+| [docs/VISION.md](docs/VISION.md) | Nucleus for the Arab & Islamic world's universities, research centers, companies |
+| [docs/EDUCATION.md](docs/EDUCATION.md) | GEOLOGIA Academy — practical learning track |
+| [SUPPORT.md](SUPPORT.md) | Partnership tiers & contact |
+| [NOTICE.md](NOTICE.md) · [LICENSE.md](LICENSE.md) | Official notice & proprietary license (Arabic governs) |
 
-مثال:
+## Where GEOLOGIA stands globally
+
+We benchmarked ourselves against the open-source leaders (GemPy v3, LoopStructural),
+the AI geoscience platforms (GeoGPT/DDE, K2 + GeoBench), the data standards (OSDU),
+and the closed leaders (Leapfrog Geo, Petrel/DELFI, GeoModeller) — see the
+[competitive matrix](docs/benchmark/COMPETITIVE_MATRIX.md). Our differentiator is
+not another modelling engine; it is an **auditable evidence layer with honest
+refusal, bilingual by design (Arabic-first)** — a gap none of the surveyed
+platforms fills today.
+
+## License & contact
+
+Copyright (c) 2026 GEOLOGIA Project — **all rights reserved**. Academic, research,
+and educational use is permitted with attribution; cloning and commercial use are
+prohibited without a written license from the project owner
+([LICENSE.md](LICENSE.md)).
+
+**Contact / التواصل:** 【PROJECT_CONTACT — the official email or contact form,
+published by the project owner】
+
+---
+
+<a id="arabic--العربية"></a>
+
+## العربية
+
+**منصة ذكاء جيوعلمي يقودها وكيل علمي رئيسي — «Ali» — فوق تسعة أدوار تخصصية
+(طبقات، تكتونيات، معادن، صخور، جيوفيزياء، كيمياء جيولوجية، مياه جوفية،
+GeoAI وGIS، مراجعة علمية). صُممت لتكون رابطاً معرفياً وعملياً في آن واحد:
+نفس المنصة تخدم قاعة الدرس ومركز الأبحاث وشركة التعدين — من أول سؤال للطالب
+إلى تنفيذ محرك معتمد بتقرير أدلة كامل.**
+
+### القواعد العلمية الملزمة
+
+1. لا يختلق النظام نتائج، ولا يدّعي تشغيل محرك لم يعمل فعلياً — كل إجابة
+   تحمل تصنيف الصدق المعلن: موثق باستشهاده، أو استنتاجي بمنطق معلن، أو
+   «غير قابل للتأكيد من المكتبة».
+2. الاحتمال ليس حقيقة: أي نسبة ثقة تحتاج نموذجاً معايراً وبيانات مستقلة.
+3. لا توصية بحفر بئر اعتماداً على خريطة وحدها.
+4. كل نتيجة قابلة للتتبع: البيانات، المحرك، الإصدار، المعلمات، المخرجات.
+5. عزل المحركات: لا بيئة Python واحدة تجمع كل الاعتماديات، ونجاح CI ليس
+   شهادة صحة النتائج الجيولوجية.
+
+### ما يعمل الآن (v0.8.1)
+
+- نواة API + مخطط حتمي لتسعة مجالات، وبوابة استقبال آمنة (حدود حجم، تفتيش
+  بايتات سحرية، أمان أرشيفات بلا استخراج، تعقيم أسماء بعلامات bidi)، ونقطة
+  رفع حية `/api/v1/uploads` بحجر صحي خام وسجل مصدر مضاد للتلاعب —
+  [ADR-0007](docs/adr/0007-http-upload-boundary.md).
+- طبقة إثبات: قرّاء حقيقيون، فحص CRS والوحدات المعلنة مقابل المحتوى الفعلي،
+  ومرجع مجمّد مستقل عن المحرك، وأول محرك علمي أول-الطرف معتمد
+  (`porosity_density_v1`) وفق [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md).
+- سجلات مرجعية جيوديسية رسمية: EGM96 ↔ EPSG:5773 وEGM2008 ↔ EPSG:3855
+  (مرآة PR #7، بوابات القبول الثماني مسجّلة، بلا شبكة مضمّنة).
+- أساس المعرفة T1 والاختبارات الذهبية T3: 40 سؤالاً ذهبياً + 10 سلبية +
+  5 مراجع مزيفة، بسكربت تدقيق حتمي وبطاقات للوكلاء التسعة.
+- النمذجة ثلاثية الأبعاد والمياه الجوفية **مقفلة عمداً** خلف اكتمال طبقة
+  البيانات الموثوقة — انضباط مقصود لا قصور ([خارطة الطريق](docs/ROADMAP.md)).
+
+### التشغيل السريع
 
 ```bash
-curl -X POST localhost:8000/api/v1/plans -H "Content-Type: application/json" -d '{"request": "ادرس احتمالية المياه الجوفية حول هذه الإحداثيات"}'
-curl -X POST localhost:8000/api/v1/plans -H "Content-Type: application/json" -d '{"request": "مرحبا"}'   # ← 422 unknown_domain، لا خطة مُصطنعة
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pytest -q
 
-curl -X POST "localhost:8000/api/v1/uploads?filename=well.las&declared_crs=local_depth" \
-     -H "Content-Type: application/octet-stream" --data-binary @well.las   # ← حكم صادق: proven أو proven_with_unverified_claims أو 422 بالرموز
-curl localhost:8000/api/v1/datasets/ds-ab12cd34ef56/proof               # ← إعادة إثبات حية من البايتات الحية
+geologia about                    # حالة المشروع ودعوة الدعم والحقوق
+geologia plan "حلل المياه الجوفية حول حوض صنعاء"
+geologia knowledge search "من بدأ علم الجيولوجيا في التاريخ؟"
+geologia verify سجل_البئر.las --type las
+geologia serve --port 8000
 ```
 
-## البنية
+يدعم **Termux (أندرويد)** كاملاً بمسار Python نقي — قرار تصميمي للمناطق
+محدودة البنية التحتية للحوسبة.
 
-```text
-src/geologia/        # النواة: API + سجل المحركات (عائلتان) + المخطّط + التطبيع العربي + CLI
-  engines/           # المحركات الأولى-الطرف: حتمية، بلا اعتماديات، قابلة للاعتماد
-  knowledge/         # طبقة المعرفة: كتالوج بذرة + فهرس TF-IDF + استرجاع باستشهاد
-  data_layer/        # بوابة استقبال آمنة + سجل بيانات + قرّاء حقيقيون (lasio/tifffile/sqlite3) + أدلة ثلاثية + سجل مصدر سلسلي + اعتماد + مهام
-  data/reference/    # المراجع المثبتة بجبر نسبي دقيق (نتائج ذهبية ببصماتها)
-docs/                # المعمارية، سياسة الدمج، معيار القبول، خارطة الطريق، ADR-0001..0006
-tests/               # 250 اختباراً (منها 11 حية على uvicorn) + جسم أدلة الرفض + مجموعة مرجعية مجمّدة في tests/data/reference/
-scripts/             # مولدات المراجع الذهبية + جسم الأدلة التالفة + مولّد المجموعة المرجعية (lasio/tifffile/pyproj)
-.github/workflows/   # CI: فحص + اختبارات على مسارين (أحدث نسخ / مسار Termux)
-```
+### المستندات
 
-## سجل التغييرات
+المعمارية والتوثيق الكامل في الجدول أعلاه، وكل القرارات موثقة في
+[docs/adr/](docs/adr/) من ADR-0001 إلى ADR-0008، والتقييم الذاتي الصادق في
+[docs/ASSESSMENT.md](docs/ASSESSMENT.md)، والموقع التنافسي العالمي في
+[docs/benchmark/COMPETITIVE_MATRIX.md](docs/benchmark/COMPETITIVE_MATRIX.md)،
+ورؤية التبني الإقليمي في [docs/VISION.md](docs/VISION.md)، والمسار التعليمي
+العملي في [docs/EDUCATION.md](docs/EDUCATION.md).
 
-راجع [CHANGELOG.md](CHANGELOG.md) — آخر إصدار 0.6.0 (2026-11-22).
+### الدعم والتبني والحقوق
 
-## بخصوص «ذاكرة كل الكتب» — بصراحة
+المشروع قيد الإنشاء ويحتاج موارد ودعماً: مراجعين علميين، بيانات مرخصة،
+مهندسين، جامعات ومراكز أبحاث تتبناه، ورعاة تقنيين — من يرى نفسه قادراً على
+الدعم أو التبني يتواصل مع الفريق التقني عبر
+[SUPPORT.md](SUPPORT.md).
+حقوق الابتكار محفوظة بالكامل، وممنوع استنساخ الكود أو تحويله تجارياً إلا
+بترخيص كتابي من صاحب المشروع ([LICENSE.md](LICENSE.md) — النص العربي حاكم).
 
-لا يُعلن هنا «تدريب نموذج على كل كتب الجيولوجيا» — ذلك ادعاء بلا أساس. ما بُني
-هو بنية الذاكرة الصفرية هلوسة: كتالوج بذرة مصنّف بحالات ثقة (بما فيه الإرث العربي
-والصيني)، و10 تلخيصات عربية أصلية، وقاعدة معرفة المحركات الثلاثين، وخط فهرسة
-ملفات المستخدم (md/txt) — والجواب دائماً إما من مقطع مخزن باستشهاده أو «ليس في
-المكتبة». النصوص الكاملة تُجلب بملفاتها ورخصها ثم تُفهرس ولا تُنسخ للمستودع.
-
-## الوثائق
-
-- [المعمارية](docs/ARCHITECTURE.md) · [سياسة دمج المحركات](docs/INTEGRATION_POLICY.md)
-- [خارطة الطريق](docs/ROADMAP.md) · [حوكمة البيانات](docs/DATA_GOVERNANCE.md)
-- [الأمان](SECURITY.md) · [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md) · [ADR-0001](docs/adr/0001-chief-agent-isolated-engines.md) · [ADR-0002](docs/adr/0002-retrieval-only-knowledge.md) · [ADR-0003](docs/adr/0003-task-ledger-mandatory-gates.md) · [ADR-0004](docs/adr/0004-first-certified-engine.md)
-
-## الترخيص
-
-AGPL-3.0 للمنصة الأصلية. رخص المحركات الخارجية **تُراجع وتُوثّق قبل أي دمج أو توزيع**
-(انظر سياسة الدمج). لا يُنسخ كود طرف ثالث داخل المستودع دون مراجعة شروطه.
+**التواصل:** 【PROJECT_CONTACT — البريد الرسمي أو نموذج التواصل، يُنشر من صاحب المشروع】

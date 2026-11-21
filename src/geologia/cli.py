@@ -109,6 +109,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p_serve = sub.add_parser("serve", help="run the API locally (needs uvicorn)")
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8000)
+
+    p_about = sub.add_parser(
+        "about",
+        help="project status, support appeal, and rights notice (bilingual)",
+    )
+    p_about.add_argument("--lang", choices=["ar", "en", "both"], default="both")
     return parser
 
 
@@ -283,12 +289,19 @@ def main(argv: Optional[List[str]] = None) -> int:
             _print(_json.loads(_Path(path).read_text(encoding="utf-8")))
             return 0
 
+    if args.command == "about":
+        from geologia.about import banner
+        print(banner(args.lang))
+        return 0
+
     if args.command == "serve":
         try:
             import uvicorn
         except ImportError:
             print("[!] uvicorn غير مثبّت: pip install uvicorn", file=sys.stderr)
             return 2
+        from geologia.about import banner
+        print(banner("both"), file=sys.stderr)  # notice at service start
         uvicorn.run("geologia.api:app", host=args.host, port=args.port)
         return 0
 
