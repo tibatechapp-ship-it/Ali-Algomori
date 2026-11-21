@@ -1,0 +1,12 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type": "Feature",
+     "properties": {"name": "sanaa_basin_center"},
+     "geometry": {"type": "Point", "coordinates": [44.2, 15.35]}},
+    {"type": "Feature",
+     "properties": {"name": "study_cell"},
+     "geometry": {"type": "Polygon",
+                  "coordinates": [[[44.0, 15.0], [44.5, 15.0], [44.5, 15.5], [44.0, 15.5], [44.0, 15.0]]]}}
+  ]
+}
