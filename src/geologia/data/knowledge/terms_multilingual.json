@@ -1,0 +1,120 @@
+{
+  "schema": "geologia-terms-multilingual/1",
+  "frozen": "2026-11-22",
+  "note_ar": "سجل مصطلحات متعدد اللغات: كل مقابلة (equivalence) تشير إلى مصدر مخزن فعلي — ملخص digest أو مدخل كتالوج — تُقرأ منه الكلمة أو صيغة قريبة موثقة. معيار النسخ يعلن طريقة أخذ الاسم من المصدر: direct (الاسم حرفياً في المصدر)، inflected_norm (اسم معياري مُطبَّع من صيغة معرَّبة/جمع موثقة)، platform_canonical (اختيار معياري للمنصة حين لا توجد صيغة حرفية في المخزون). المصطلح يكون well_known فقط إذا وثّق مصدر مخزن واحد المقابلة الثنائية صراحة (سجلات الآبار / Well Logs في digest_06)؛ وغير ذلك يُعلن to_verify — لا يُخترع مقابل لم يوجد في المكتبة. الترجمة لا تستبدل الأصل ولا تحمل وزناً أكبر منه (ADR-0008).",
+  "copy_standards": {
+    "direct": "term used verbatim as in the cited stored source (the Arabic clitic article al- and Latin capitalization may differ)",
+    "inflected_norm": "term normalized to its dictionary (singular/headword) form from a verbatim inflected form in the cited source",
+    "platform_canonical": "platform standard term chosen where no verbatim form exists in stored sources; needs source verification before report use"
+  },
+  "terms": [
+    {
+      "entity_id": "term-fault",
+      "concept": "fault",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "fault", "source_id": "classic-wilson-1966", "copy_standard": "inflected_norm"},
+        {"language": "ar", "name": "الصدع", "source_id": "classic-twiss-moores-2007", "copy_standard": "platform_canonical"}
+      ]
+    },
+    {
+      "entity_id": "term-fold",
+      "concept": "fold",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "fold", "source_id": "classic-twiss-moores-2007", "copy_standard": "platform_canonical"},
+        {"language": "ar", "name": "الطية", "source_id": "digest-digest_03_seismology_structural", "copy_standard": "inflected_norm"}
+      ]
+    },
+    {
+      "entity_id": "term-stratigraphy",
+      "concept": "stratigraphy",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "stratigraphy", "source_id": "classic-boggs-2006", "copy_standard": "direct"},
+        {"language": "ar", "name": "الطبقات", "source_id": "digest-digest_09_3d_modelling", "copy_standard": "direct"}
+      ]
+    },
+    {
+      "entity_id": "term-geoid",
+      "concept": "geoid",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "geoid", "source_id": "classic-longley-2015", "copy_standard": "platform_canonical"},
+        {"language": "ar", "name": "الجيويد", "source_id": "classic-longley-2015", "copy_standard": "platform_canonical"}
+      ]
+    },
+    {
+      "entity_id": "term-aquifer",
+      "concept": "aquifer",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "aquifer", "source_id": "classic-freeze-cherry-1979", "copy_standard": "platform_canonical"},
+        {"language": "ar", "name": "طبقة المياه الجوفية", "source_id": "classic-freeze-cherry-1979", "copy_standard": "platform_canonical"}
+      ]
+    },
+    {
+      "entity_id": "term-porosity",
+      "concept": "porosity",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "porosity", "source_id": "classic-bear-1972", "copy_standard": "platform_canonical"},
+        {"language": "ar", "name": "المسامية", "source_id": "classic-bear-1972", "copy_standard": "direct"}
+      ]
+    },
+    {
+      "entity_id": "term-permeability",
+      "concept": "permeability",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "permeability", "source_id": "classic-bear-1972", "copy_standard": "platform_canonical"},
+        {"language": "ar", "name": "النفاذية", "source_id": "classic-bear-1972", "copy_standard": "platform_canonical"}
+      ]
+    },
+    {
+      "entity_id": "term-earthquake",
+      "concept": "earthquake",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "earthquake", "source_id": "classic-stein-wysession-2003", "copy_standard": "inflected_norm"},
+        {"language": "ar", "name": "الزلزال", "source_id": "classic-isacks-1968", "copy_standard": "direct"}
+      ]
+    },
+    {
+      "entity_id": "term-mineral",
+      "concept": "mineral",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "mineral", "source_id": "heritage-albiruni-jawahir", "copy_standard": "platform_canonical"},
+        {"language": "ar", "name": "المعدن", "source_id": "heritage-albiruni-jawahir", "copy_standard": "inflected_norm"}
+      ]
+    },
+    {
+      "entity_id": "term-ore",
+      "concept": "ore",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "ore", "source_id": "classic-guilbert-park-1986", "copy_standard": "direct"},
+        {"language": "ar", "name": "الخامة المعدنية", "source_id": "digest-digest_05_geochemistry_ores", "copy_standard": "inflected_norm"}
+      ]
+    },
+    {
+      "entity_id": "term-well-log",
+      "concept": "well log",
+      "metadata_confidence": "well_known",
+      "equivalences": [
+        {"language": "en", "name": "well log", "source_id": "manual-asquith-1982", "copy_standard": "direct"},
+        {"language": "ar", "name": "سجلات الآبار", "source_id": "digest-digest_06_welllogs_petrology", "copy_standard": "direct"}
+      ]
+    },
+    {
+      "entity_id": "term-tectonics",
+      "concept": "tectonics",
+      "metadata_confidence": "to_verify",
+      "equivalences": [
+        {"language": "en", "name": "tectonics", "source_id": "classic-isacks-1968", "copy_standard": "direct"},
+        {"language": "ar", "name": "التكتونيات", "source_id": "classic-wegener-1915", "copy_standard": "platform_canonical"}
+      ]
+    }
+  ]
+}

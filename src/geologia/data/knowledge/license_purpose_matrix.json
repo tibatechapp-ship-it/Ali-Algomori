@@ -1,0 +1,57 @@
+{
+  "schema": "geologia-license-purpose-matrix/1",
+  "frozen": "2026-11-22",
+  "purposes": ["indexing", "retrieval", "training", "redistribution"],
+  "note_ar": "مصفوفة الرخص × الأغراض تجيب عن الساق الترخيصي فقط. التدريب false لكل الحالات في الإصدار الأول: بوابة النموذج في ADR-0008 تشترط مجتمعاً خط أساس مقيساً على القسمة المحجوبة المجمدة وتحسناً مثبتاً بدرجات المصحح الحتمي — الرخصة المرخصة للاسترجاع لا تعني الترخيص للتدريب. حالة unknown مقيّدة بصراحة: الفهرسة للبيانات الوصفية المُعرَّفة فقط، أما الاسترجاع والتدريب والتوزيع فمرفوضة حتى التحقق من الرخصة عند الجلب. تُقرأ الخلايا عبر geologia.knowledge.licenses.purpose_allowed، وأي استثناء يتطلب قيداً معلناً في overrides لا مجرد تعديل خلية.",
+  "matrix": {
+    "public_domain": {
+      "indexing": {"allowed": true, "reason": "public domain: metadata indexing permitted"},
+      "retrieval": {"allowed": true, "reason": "public domain: retrieval with full citation permitted"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": true, "reason": "public domain grants redistribution rights"}
+    },
+    "open_source": {
+      "indexing": {"allowed": true, "reason": "open source license: metadata indexing permitted"},
+      "retrieval": {"allowed": true, "reason": "open source license: retrieval with full citation permitted"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": true, "reason": "redistribution permitted under the license file terms shipped with the source"}
+    },
+    "open_access": {
+      "indexing": {"allowed": true, "reason": "open access: metadata indexing permitted"},
+      "retrieval": {"allowed": true, "reason": "open access: retrieval with full citation permitted"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": false, "reason": "open access grants reading rights, not automatic redistribution rights"}
+    },
+    "open_data": {
+      "indexing": {"allowed": true, "reason": "open data license: metadata indexing permitted"},
+      "retrieval": {"allowed": true, "reason": "open data license: retrieval with full citation permitted"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": false, "reason": "open data terms govern reuse; redistribution stays off in v1 pending per-dataset terms verification"}
+    },
+    "free_online": {
+      "indexing": {"allowed": true, "reason": "free online availability is not a license: indexing of identified metadata permitted"},
+      "retrieval": {"allowed": true, "reason": "free online access: retrieval with full citation permitted"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": false, "reason": "free to read does not grant redistribution rights"}
+    },
+    "company_publication": {
+      "indexing": {"allowed": true, "reason": "company publication: metadata indexing permitted"},
+      "retrieval": {"allowed": true, "reason": "company publication: retrieval with full citation permitted"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": false, "reason": "company copyright: no redistribution rights"}
+    },
+    "licensed": {
+      "indexing": {"allowed": true, "reason": "licensed (subscription/paywalled): metadata indexing permitted"},
+      "retrieval": {"allowed": true, "reason": "licensed: retrieval with full citation permitted"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": false, "reason": "licensed content: no redistribution rights without an explicit grant"}
+    },
+    "unknown": {
+      "indexing": {"allowed": true, "reason": "license unknown: indexing of identified metadata only, never content"},
+      "retrieval": {"allowed": false, "reason": "license unknown: retrieval refused until the license is verified at fetch time"},
+      "training": {"allowed": false, "reason": "training is false for ALL states in v1 (this matrix answers the license leg only): the ADR-0008 model gate additionally requires a measured frozen-baseline and proven improvement, so no license state opens training alone"},
+      "redistribution": {"allowed": false, "reason": "license unknown: redistribution refused"}
+    }
+  },
+  "overrides": {}
+}
