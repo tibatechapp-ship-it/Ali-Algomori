@@ -1,0 +1,922 @@
+{
+  "schema": "geologia-golden-eval/1",
+  "frozen": "2026-11-22",
+  "note_ar": "مجموعة التقييم الذهبية v1 مجمدة بتاريخ 2026-11-22: 40 سؤالاً موزعة على المجالات التحليلية التسعة (exploration, geochemistry, geology3d, geophysics, gis, hydrology, remote_sensing, seismology, well_logs) مشتقة نصاً من ملخصات المكتبة digest_01..digest_10 مع مصدر متوقع ومصطلحات إثبات لكل سؤال، إضافة إلى 10 أسئلة غير قابلة للإجابة و5 استفهامات بمراجع ملفقة كبوابة الصفر هلوسة (يجب أن يجيبها الفهرس بـ«ليس في المكتبة» ولا يُولَّد أي استشهاد). البندان الرقميان (ge-028 بدقة 10 أمتار وge-027 بدقة 30 م) يحملان حقل tolerance مثبتاً لمصححات رقمية مستقبلية، والمرحلة الحالية تتعامل معهما كاسترجاع موثق. لا توجد بنود conflict_reasoning في v1: فُحصت الملخصات العشر ولم يُعثر فيها على زوج وثائق يعطي جوابين متعارضين بحسب المنطقة — المصحح لهذه الحالة مطبق في سكربت التدقيق وجاهز لإصدارات لاحقة، ولا يُختلق تعارض غير موجود. الأسئلة الإنجليزية الخالصة محدودة بأربعة بنود لأن استرجاع TF-IDF على نصوص عربية أولاً يضع مدخلات الكتالوج اللاتينية فوق المقاطع العربية في السباق — قياس صادق لحد v1 لا عيب إغفال. التعديل الصامت مستحيل: بصمتا sha256 تحكمان الوثيقة والقسمة.",
+  "split_policy_ar": "القسمة حتمية بلا عشوائية: داخل كل مجال من المجالات التسعة (بترتيبها الأبجدي وبترتيب qid) تُحجب المواضع القابلة للقسمة على 3 (الثالث والسادس...)، ويُحجب البند الأخير أيضاً في المجالات ذات خمسة بنود — الناتج 13 محجوباً من 40 (32.5%) و27 تطويرياً. بنود السلبية العشرة ومراجع ملفقة الخمسة كلها heldout لأنها بوابة الصفر هلوسة وتُنفَّذ في كل نداء تدقيق أياً كان الـsplit المطلوب. بصمة blocked_split_sha256 تُحسب على القائمة المرتبة لكل qid محجوب (بنود الذهب والسلبية معاً)؛ أي تحريك لبند بين dev وheldout بدون إعادة التوليد يكسر البصمة ويفشل اختبار CI بصوت عالٍ. القسمة المحجوبة لا تُستخدم لضبط أي شيء أثناء التطوير — تُفتح للمقارنة فقط عند بوابة تغيير النموذج (ADR-0008).",
+  "blocked_split_sha256": "60da21b1c35c8f5f5d36d378c3314307828f964b828ac5f8bb87eac26189f13a",
+  "items": [
+    {
+      "qid": "ge-001",
+      "domain": "exploration",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الثانية من الملخص: خرائط قابلية الاستكشاف تُرتب أولويات مسح ميداني فقط ولا تؤكد وجود معدن"
+      },
+      "grader": {
+        "required_terms": [
+          "eis",
+          "صلاحيه"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما وظيفة خرائط قابلية الاستكشاف في EIS Toolkit: تُرتب أولويات المسح الميداني أم تؤكد وجود معدن وفق حد الصلاحية؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-002",
+      "domain": "exploration",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الثالثة: جيولوجيا الخامات تُقرأ من جيلبرت وبارك (1986) شمولاً"
+      },
+      "grader": {
+        "required_terms": [
+          "جيلبرت",
+          "1986"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من أي كتاب تُقرأ جيولوجيا الخامات شمولاً مع بوابات أبحاث أمريكية وبريطانية وفق الملخص؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-003",
+      "domain": "exploration",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الثالثة: منشورات المسوح الوطنية العربية معظمها ورقي (السعودية SGS، مصر EGSMA، اليمن YGSMRB)"
+      },
+      "grader": {
+        "required_terms": [
+          "egsma",
+          "ygsmrb"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_en": "Which national surveys (SGS, EGSMA, YGSMRB) are named with paper publications?",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-004",
+      "domain": "exploration",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_07_yemen_geology",
+        "locator_hint": "الفقرة الثانية من ملخص اليمن: مدخل yemen-geukens-pp560d بحالة to_verify يُتحقق عند الجلب قبل الاستشهاد"
+      },
+      "grader": {
+        "required_terms": [
+          "560",
+          "جيوكنز"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما حالة مدخل الكتالوج لتقرير USGS Professional Paper 560-D عن جيولوجيا اليمن ومتى يُتحقق منه؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-005",
+      "domain": "geochemistry",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الأولى: أساس جولدشمِت الكمي (1954) لتوزيع العناصر"
+      },
+      "grader": {
+        "required_terms": [
+          "جولدشم",
+          "1954"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "على أي أساس قامت الجيوكيمياء الحديثة الكمية لتوزيع العناصر؟",
+      "question_en": "On which quantitative foundation did modern geochemistry arise for element distribution?",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-006",
+      "domain": "geochemistry",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الأولى: رولينسون (1993) لقراءة البيانات وعرضها وتفسيرها — الأقرب لمسار Geochemistry π"
+      },
+      "grader": {
+        "required_terms": [
+          "رولينسون",
+          "لمسار"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "أي كتاب 1993 يُعد الأقرب لمسار قراءة البيانات الجيوكيميائية وعرضها وتفسيرها وفق الملخص؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-007",
+      "domain": "geochemistry",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الأولى: فَور (1986) وديكن (2018) للأيزوتوبات"
+      },
+      "grader": {
+        "required_terms": [
+          "وفور",
+          "ايزوتوبات"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من المرجعان المسمانان للأيزوتوبات وفق ملخص الجيوكيمياء؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-008",
+      "domain": "geochemistry",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الثانية: يبدأ من بيانات مُقاسة بمرجع معياري (standard reference material) موثق"
+      },
+      "grader": {
+        "required_terms": [
+          "standard",
+          "مقاسه"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "بماذا يجب أن يبدأ أي تصنيف صخري بتعلم الآلة وفق قاعدة المنصة الجيوكيميائية؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-009",
+      "domain": "geochemistry",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_05_geochemistry_ores",
+        "locator_hint": "الفقرة الثانية: النتيجة تُعرض بفئات احتمالية لا بحقائق قاطعة"
+      },
+      "grader": {
+        "required_terms": [
+          "احتماليه",
+          "قاطعه"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "كيف تُعرض نتيجة التصنيف الصخري بتعلم الآلة وفق قاعدة المنصة: فئات احتمالية أم حقائق قاطعة؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-010",
+      "domain": "geology3d",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_09_3d_modelling",
+        "locator_hint": "الفقرة الأولى: مدارس أسترالية وأوروبية (GemPy وLoopStructural وغيرها)"
+      },
+      "grader": {
+        "required_terms": [
+          "مدارس",
+          "استراليه"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "على أي مدارس قامت النمذجة الجيولوجية ثلاثية الأبعاد الحديثة وفق الملخص؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-011",
+      "domain": "geology3d",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_09_3d_modelling",
+        "locator_hint": "الفقرة الثانية: عرض بنية الطبقات العامة ونطاق عدم اليقين في نطاق صغير موثق — لا قراءة أعماق دقيقة"
+      },
+      "grader": {
+        "required_terms": [
+          "gempy",
+          "نقاط"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما الذي يُستخدم له نموذج GemPy بخمس نقاط تحكم وفق قاعدة الصدق الرقمية؟",
+      "question_en": "What is a GemPy model with five control points used for under the digital honesty rule?",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-012",
+      "domain": "geology3d",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_09_3d_modelling",
+        "locator_hint": "الفقرة الأولى: مسار Loop — map2loop تحويل الخرائط إلى مدخلات وLoopStructural للنمذجة البنيوية"
+      },
+      "grader": {
+        "required_terms": [
+          "map2loop",
+          "loopstructural"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "أي مسار يحول الخرائط إلى مدخلات للنمذجة البنيوية وفق الملخص (map2loop وLoopStructural)؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-013",
+      "domain": "geology3d",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_09_3d_modelling",
+        "locator_hint": "الفقرة الثانية: عدم اليقين مخرج أساسي يُعلن مع كل نموذج وفق منهج الفرضيات المتعددة"
+      },
+      "grader": {
+        "required_terms": [
+          "اليقين",
+          "مخرج"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما المخرج الأساسي الذي يجب إعلانه مع كل نموذج ثلاثي الأبعاد وفق قاعدة الصدق الرقمية؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-014",
+      "domain": "geophysics",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_04_geophysics",
+        "locator_hint": "الفقرة الأولى: تلفورد وجيلدارت وشريف (1990)، وكيري وبروكس وهِل (2002)، ورينولدز (2011)"
+      },
+      "grader": {
+        "required_terms": [
+          "تلفورد",
+          "رينولدز"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من أي ثلاثة مراجع متكاملة تُدرس الطرق الجيوفيزيائية المستكشفة؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-015",
+      "domain": "geophysics",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_04_geophysics",
+        "locator_hint": "الفقرة الثانية: هندسة مسح موثقة وطوبوغرافيا معروفة ولا إعلان إلا بحدود ثقة"
+      },
+      "grader": {
+        "required_terms": [
+          "simpeg",
+          "مدفون"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ماذا يحتاج العكس الجيوفيزيائي قبل الإعلان عن جسم مدفون وفق قواعد المنصة؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-016",
+      "domain": "geophysics",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_04_geophysics",
+        "locator_hint": "الفقرة الثانية: من اختبار مرجعي موثق قابل لإعادة الإنتاج لا من مقارنة بصرية"
+      },
+      "grader": {
+        "required_terms": [
+          "الارقام",
+          "بصريه"
+        ],
+        "alt_doc_ids": [
+          "digest-digest_10_acceptance_standard"
+        ]
+      },
+      "question_ar": "من أين تُبنى الأرقام المرجعية لاختبار أي عكس جيوفيزيائي وفق الملخص؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-017",
+      "domain": "geophysics",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_04_geophysics",
+        "locator_hint": "الفقرة الثانية: المعالجة السيزمية البحثية مسار Madagascar ببوابة ahay.org"
+      },
+      "grader": {
+        "required_terms": [
+          "madagascar",
+          "ahay"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما المسار البحثي للمعالجة السيزمية وبوابة ahay.org وفق الملخص؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-018",
+      "domain": "geophysics",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_04_geophysics",
+        "locator_hint": "الفقرة الأخيرة: فاين وماثيوز (1963) بالشذوذ المغناطيسي"
+      },
+      "grader": {
+        "required_terms": [
+          "ماثيوز",
+          "الشذوذ"
+        ],
+        "alt_doc_ids": [
+          "digest-digest_01_timeline_principles"
+        ]
+      },
+      "question_ar": "بأي طريقة وأي سنة أُثبت الانتشار القاعدي وفق الملخص الجيوفيزيائي؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-019",
+      "domain": "gis",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_08_gis_rs",
+        "locator_hint": "الفقرة الثانية: لا تحليل بدون CRS معروف ووحدات موثقة (سياسة حوكمة البيانات)"
+      },
+      "grader": {
+        "required_terms": [
+          "crs",
+          "ووحدات"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما قواعد المنصة الجغرافية التي تمنع أي تحليل بدون CRS معروف ووحدات موثقة؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-020",
+      "domain": "gis",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_08_gis_rs",
+        "locator_hint": "الفقرة الأولى: QGIS للتحليل المكاني وGRASS للتضاريس وGMT للخرائط العلمية النهائية"
+      },
+      "grader": {
+        "required_terms": [
+          "للتحليل",
+          "للخرائط"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما الأدوات المذكورة للتحليل المكاني وللتضاريس وللخرائط العلمية النهائية وفق الملخص؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-021",
+      "domain": "gis",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_08_gis_rs",
+        "locator_hint": "الفقرة الأولى: لونغلي وزملاؤه (2015) لنظرية GIS"
+      },
+      "grader": {
+        "required_terms": [
+          "لونغلي",
+          "2015"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من أي مرجع تُقرأ نظرية GIS وفق ملخص المنصة: لونغلي أم ليلسند؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-022",
+      "domain": "gis",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_07_yemen_geology",
+        "locator_hint": "الفقرة الثالثة من ملخص اليمن: جيوريفرنس موثق الخطأ لنقاط تحكم معلنة وتحقق الرخصة قبل أي توزيع"
+      },
+      "grader": {
+        "required_terms": [
+          "جيوريفرنس",
+          "توزيع"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ماذا تتطلب سياسة الخطة الصارمة للجيوريفرنس وللرخصة قبل التوزيع؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-023",
+      "domain": "hydrology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_02_hydrogeology",
+        "locator_hint": "الفقرة الأولى: هيبرت (1940)"
+      },
+      "grader": {
+        "required_terms": [
+          "هيبرت",
+          "1940"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من صاحب الصياغة الفيزيائية الكاملة التي تبدأ منها الهيدروجيولوجيا الحديثة؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-024",
+      "domain": "hydrology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_02_hydrogeology",
+        "locator_hint": "الفقرة الثانية: ماكدونالد وهاربو 1988 (USGS TWRI 6-A1) وتوثيق MODFLOW 6 (لانجفين وآخرون 2017، T&M 6-A55)"
+      },
+      "grader": {
+        "required_terms": [
+          "الوحيدان",
+          "المقبولان"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما المرجعان الوحيدان المقبولان قبل أي دمج لمحرك MODFLOW وفق قاعدة النمذجة الموثقة؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-025",
+      "domain": "hydrology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_02_hydrogeology",
+        "locator_hint": "الفقرة الثانية: لا تُقبل أرقام منسوب نهائية من شبكة تقريبية بشحن تقديري"
+      },
+      "grader": {
+        "required_terms": [
+          "منسوب",
+          "تقديري"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما نوع أرقام المنسوب التي لا تُقبل من شبكة تقريبية وفق قاعدة النمذجة الموثقة؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-026",
+      "domain": "hydrology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_02_hydrogeology",
+        "locator_hint": "الفقرة الثالثة: Pastas لسلاسل مناسيب الآبار الزمنية"
+      },
+      "grader": {
+        "required_terms": [
+          "المساند",
+          "لسلاسل"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما الأداة المساندة لسلاسل مناسيب الآبار الزمنية في ملخص الهيدروجيولوجيا؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-027",
+      "domain": "hydrology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_07_yemen_geology",
+        "locator_hint": "الفقرة الأخيرة من ملخص اليمن: كل أرقام الحوض من تحليل DEM موحد بدقة 30 م"
+      },
+      "grader": {
+        "required_terms": [
+          "صنعاء",
+          "dem"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من أين تُبنى كل أرقام حوض صنعاء وبأي دقة وفق الخطة؟",
+      "tolerance": {
+        "value": 30,
+        "abs_tol": 1.0
+      },
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-028",
+      "domain": "remote_sensing",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_08_gis_rs",
+        "locator_hint": "الفقرة الثانية: صور Sentinel-2 بدقة 10 أمتار عبر Copernicus Data Space"
+      },
+      "grader": {
+        "required_terms": [
+          "sentinel",
+          "10"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_en": "What is the spatial resolution of Sentinel-2 in the plan (Copernicus Data Space)?",
+      "tolerance": {
+        "value": 10,
+        "abs_tol": 0.5
+      },
+      "split": "dev"
+    },
+    {
+      "qid": "ge-029",
+      "domain": "remote_sensing",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_08_gis_rs",
+        "locator_hint": "الفقرة الثانية: صور Landsat وDEM عبر USGS Earth Explorer في جدول مصادر الخطة"
+      },
+      "grader": {
+        "required_terms": [
+          "landsat",
+          "explorer"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_en": "Where do Landsat imagery and DEMs come from in the plan (USGS Earth Explorer)?",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-030",
+      "domain": "remote_sensing",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_08_gis_rs",
+        "locator_hint": "الفقرة الثالثة: تُعرض كمبدئية فقط بدون نقاط تحكم أرضية موثقة"
+      },
+      "grader": {
+        "required_terms": [
+          "بدون",
+          "مبدئيه"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "كيف تُعرض منتجات OpenDroneMap بدون نقاط تحكم أرضية موثقة وفق حد الصلاحية الواضح؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-031",
+      "domain": "remote_sensing",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_08_gis_rs",
+        "locator_hint": "الفقرة الأولى: ليلِسند وكِيفر وتشيبمان (2015) — الأساس المنهجي للأسابيع 1-3"
+      },
+      "grader": {
+        "required_terms": [
+          "ليلسند",
+          "للأسابيع"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من أي مرجع يُقرأ الاستشعار عن بعد ولماذا يُعد أساساً منهجياً للأسابيع الأولى وفق الملخص؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-032",
+      "domain": "seismology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_03_seismology_structural",
+        "locator_hint": "الفقرة الأولى: آكي وريتشاردز (1980) كأساس رياضي"
+      },
+      "grader": {
+        "required_terms": [
+          "اكي",
+          "1980"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من أي مرجع يُقرأ علم الزلازل الكمي كأساس رياضي؟",
+      "question_en": "Which reference is read as the mathematical basis of quantitative seismology?",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-033",
+      "domain": "seismology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_03_seismology_structural",
+        "locator_hint": "الفقرة الأولى: ورقة إيزاكس وأوليفر وسيكس (1968) ربطت توزيع الزلازل بحدود الصفائح"
+      },
+      "grader": {
+        "required_terms": [
+          "ربطت",
+          "الصفائح"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "أي ورقة 1968 ربطت توزيع الزلازل بحدود الصفائح ومن مؤلفوها وفق الملخص؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-034",
+      "domain": "seismology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_03_seismology_structural",
+        "locator_hint": "الفقرة الثانية: لفهم الترتيب النسبي للخطر بين مناطق فقط وليس لمعايير تصميم مبانٍ أو تأمين"
+      },
+      "grader": {
+        "required_terms": [
+          "openquake",
+          "تصميم"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما حد الصلاحية المكتوب لحساب PSHA عبر OpenQuake في الخطة؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-035",
+      "domain": "seismology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_03_seismology_structural",
+        "locator_hint": "الفقرة الأولى: ObsPy وPyrocko وOpenQuake"
+      },
+      "grader": {
+        "required_terms": [
+          "الزلازل",
+          "والجيولوجيا"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما الأدوات الثلاث المذكورة في الخطة الزلزالية وفق ملخص الزلازل والجيولوجيا البنيوية؟",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-036",
+      "domain": "seismology",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_01_timeline_principles",
+        "locator_hint": "الفقرة الثالثة من ملخص الخط الزمني: براهين تكتونية الصفائح في الستينيات أساس هذا التصنيف"
+      },
+      "grader": {
+        "required_terms": [
+          "ثانويا",
+          "الصفائح"
+        ],
+        "alt_doc_ids": [
+          "digest-digest_07_yemen_geology"
+        ]
+      },
+      "question_ar": "لماذا يُصنف البحر الأحمر وخليج عدن نطاقاً زلزالياً ثانوياً في الخطة؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-037",
+      "domain": "well_logs",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_06_welllogs_petrology",
+        "locator_hint": "الفقرة الأولى: Asquith وGibson (1982) ثم Rider (2002) ثم دليل Schlumberger (1989)"
+      },
+      "grader": {
+        "required_terms": [
+          "asquith",
+          "rider"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_en": "Which three graduated references for well logs does the digest name (Asquith, Rider, Schlumberger)?",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-038",
+      "domain": "well_logs",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_06_welllogs_petrology",
+        "locator_hint": "الفقرة الأولى: التحقق الصيغي أولاً (NULL ووحدات ومنحنيات معلنة) قبل أي تفسير"
+      },
+      "grader": {
+        "required_terms": [
+          "las",
+          "null"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ما الذي يجب أن يمر به أي قراءة منحنى LAS قبل أي تفسير وفق قاعدة المنصة؟",
+      "question_en": "What must any LAS curve reading pass before interpretation under the platform rule?",
+      "split": "dev"
+    },
+    {
+      "qid": "ge-039",
+      "domain": "well_logs",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_06_welllogs_petrology",
+        "locator_hint": "الفقرة الثانية: إصدار LAS ووجود NULL وتناسق STRT/STOP/STEP مع عدد صفوف البيانات"
+      },
+      "grader": {
+        "required_terms": [
+          "strt",
+          "step"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "ماذا يفحص المدقق الصيغي المدمج في ملفات LAS من حيث STRT وSTOP وSTEP؟",
+      "split": "heldout"
+    },
+    {
+      "qid": "ge-040",
+      "domain": "well_logs",
+      "expected_behavior": "documented_retrieval",
+      "expected_source": {
+        "kind": "digest",
+        "id": "digest-digest_06_welllogs_petrology",
+        "locator_hint": "الفقرة الثالثة: وِنتر (2010) للصخور النارية والمتحولة"
+      },
+      "grader": {
+        "required_terms": [
+          "البتروجرافيا",
+          "الناريه"
+        ],
+        "alt_doc_ids": []
+      },
+      "question_ar": "من مرجع البتروجرافيا المكملة للصخور النارية والمتحولة وفق الملخص؟",
+      "split": "dev"
+    }
+  ],
+  "negative_unanswerable": [
+    {
+      "qid": "ng-001",
+      "expected": "not_in_library",
+      "reason_ar": "نتيجة دراسة حديثة محددة (2023) وقيمة لبئر مسمى — لا يوجد مقطع مخزن عنها في المكتبة",
+      "split": "heldout",
+      "question_en": "What porosity value for borehole QR-7 in the 2023 Amran aquifer study?"
+    },
+    {
+      "qid": "ng-002",
+      "expected": "not_in_library",
+      "reason_ar": "قياسات حديثة محددة لعام 2023 في منطقة غير موثقة بالملخصات — ليس في المكتبة",
+      "split": "heldout",
+      "question_ar": "ما نتيجة قياسات الحيمة الجيرية لعام 2023؟"
+    },
+    {
+      "qid": "ng-003",
+      "expected": "not_in_library",
+      "reason_ar": "سؤال عن حدث مستقبلي — الاسترجاع لا يتنبأ ولا يجيب عن المستقبل",
+      "split": "heldout",
+      "question_en": "Will there be a strong earthquake in Taiz tomorrow morning?"
+    },
+    {
+      "qid": "ng-004",
+      "expected": "not_in_library",
+      "reason_ar": "سؤال تنبؤي عن زلزال غد — لا جواب من مقاطع مخزنة ولا يُختلق",
+      "split": "heldout",
+      "question_ar": "هل ستحدث زلزة قوية في تعز غداً صباحاً؟"
+    },
+    {
+      "qid": "ng-005",
+      "expected": "not_in_library",
+      "reason_ar": "سؤال سوقي لحظي خارج نطاق مكتبة جيولوجية — ليس في المكتبة",
+      "split": "heldout",
+      "question_en": "What is the gold price today on the world bullion market?"
+    },
+    {
+      "qid": "ng-006",
+      "expected": "not_in_library",
+      "reason_ar": "سعر سلعة لحظي اليوم — خارج المقاطع المخزنة كلياً",
+      "split": "heldout",
+      "question_ar": "ما سعر الفضة اليوم في السوق العالمي؟"
+    },
+    {
+      "qid": "ng-007",
+      "expected": "not_in_library",
+      "reason_ar": "برمجية تجارية وخطوات تثبيت غير موجودة في المكتبة (قاعدة المحركات لا تتضمن ArcGIS)",
+      "split": "heldout",
+      "question_en": "How do I install ArcGIS Pro on Windows 11?"
+    },
+    {
+      "qid": "ng-008",
+      "expected": "not_in_library",
+      "reason_ar": "خطوات تثبيت برمجية غير مخزنة — الجواب الأمين «ليس في المكتبة»",
+      "split": "heldout",
+      "question_ar": "كيف أثبّت حزمة ArcGIS Pro لويندوز؟"
+    },
+    {
+      "qid": "ng-009",
+      "expected": "not_in_library",
+      "reason_ar": "عينة مسماة برقم ووادٍ غير موثقين — لا قياس مخزن عنها",
+      "split": "heldout",
+      "question_en": "What was the silica content of rock sample SH-12 from Wadi Hijr?"
+    },
+    {
+      "qid": "ng-010",
+      "expected": "not_in_library",
+      "reason_ar": "تكوين وموقع غير موثقين في الملخصات — لا رقم عمق مخزن",
+      "split": "heldout",
+      "question_ar": "ما عمق تكوين القرينات الجيري في القرينات بالأمتار؟"
+    }
+  ],
+  "negative_fake_references": [
+    {
+      "qid": "fr-001",
+      "fabricated_ref": "الأحمدي (2019) — النشاط اللزج في مأرب",
+      "expected": "no_generation_and_no_citation",
+      "grader": {
+        "forbidden_ids": [
+          "fabricated:al-ahmadi-2019-marib-viscosity"
+        ]
+      },
+      "split": "heldout",
+      "query_ar": "ماذا يقول الأحمدي في ورقته 2019 عن النشاط اللزج في مأرب؟"
+    },
+    {
+      "qid": "fr-002",
+      "fabricated_ref": "Simpson (2021) — Tectonic Framework of the Mukalla Shelf",
+      "expected": "no_generation_and_no_citation",
+      "grader": {
+        "forbidden_ids": [
+          "fabricated:simpson-2021-mukalla-shelf"
+        ]
+      },
+      "split": "heldout",
+      "query_en": "According to Simpson 2021 'Tectonic Framework of the Mukalla Shelf', what is the crustal thickness?"
+    },
+    {
+      "qid": "fr-003",
+      "fabricated_ref": "الخزرجي (2014) — كنوز صعدة العميقة",
+      "expected": "no_generation_and_no_citation",
+      "grader": {
+        "forbidden_ids": [
+          "fabricated:al-khazraji-2014-saada-treasures"
+        ]
+      },
+      "split": "heldout",
+      "query_ar": "حسب الخزرجي 2014 «كنوز صعدة العميقة»، ما حجم الاحتياطي هناك؟"
+    },
+    {
+      "qid": "fr-004",
+      "fabricated_ref": "Karim (2022) — Atlas of Rub Shield Ores",
+      "expected": "no_generation_and_no_citation",
+      "grader": {
+        "forbidden_ids": [
+          "fabricated:karim-2022-rub-shield-atlas"
+        ]
+      },
+      "split": "heldout",
+      "query_en": "According to Karim 2022 'Atlas of Rub Shield Ores', which chromite grades are listed?"
+    },
+    {
+      "qid": "fr-005",
+      "fabricated_ref": "البقمي (2020) — مسح دوعن الجيولوجي",
+      "expected": "no_generation_and_no_citation",
+      "grader": {
+        "forbidden_ids": [
+          "fabricated:al-baqami-2020-dawaan-survey"
+        ]
+      },
+      "split": "heldout",
+      "query_ar": "ماذا وجد البقمي 2020 في دوعن؟"
+    }
+  ],
+  "fingerprint_sha256": "d5e97b17e1a7d37412bec542b9317946dfc6631d4cc45c5665ad08ece24de1aa"
+}

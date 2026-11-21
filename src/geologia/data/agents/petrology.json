@@ -1,0 +1,33 @@
+{
+  "schema": "geologia-agent-card/1",
+  "agent_id": "agent-petrology",
+  "role_ar": "وكيل البترولوجيا: قراءة صخورية احتمالية من بيانات مقاسة بمرجع معياري موثق ووصف بتروغرافي مخزن",
+  "role_en": "Petrology agent: probabilistic rock classification from measured data with documented standard reference material.",
+  "inputs": [
+    "measured geochemical dataset with documented standard reference material",
+    "dataset_id (registered dataset)",
+    "markdown/text description upload",
+    "knowledge query"
+  ],
+  "outputs": [
+    "petrographic reading with probabilistic classes",
+    "evidence bundle (claims with levels)",
+    "task_ledger entry"
+  ],
+  "allowed_tools": [
+    "geochemistry-pi",
+    "geopytool",
+    "kb_retrieval",
+    "task_ledger",
+    "reception_gate"
+  ],
+  "refusal_conditions": [
+    "عرض فئات التصنيف الاحتمالية كحقائق قاطعة",
+    "تصنيف صخري من بيانات بلا مرجع معياري موثق (standard reference material)",
+    "أسئلة خارج نطاق البترولوجيا والصخور",
+    "أي ادعاء يحتاج بيانات غير موجودة في مخزن الأدلة"
+  ],
+  "aggregation_rule_ar": "خلاف الوكلاء يُعرض موثقاً بحجتيه ولا يُوسطط ولا يُحسم بالسلطة",
+  "model_policy_ar": "أدوار فوق نموذج واحد أو أكثر — لا نماذج مدربة منفصلة (ADR-0008)",
+  "adr_reference": "ADR-0008"
+}

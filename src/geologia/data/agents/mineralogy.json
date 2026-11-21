@@ -1,0 +1,32 @@
+{
+  "schema": "geologia-agent-card/1",
+  "agent_id": "agent-mineralogy",
+  "role_ar": "وكيل المعادن: وصف تكرارات المعادن وترتيب أولويات الاستكشاف من بيانات مسجلة — لا تأكيد وجود خام",
+  "role_en": "Mineralogy agent: describes mineral occurrences and ranks exploration priorities from registered data — never confirms an orebody.",
+  "inputs": [
+    "assay CSV upload",
+    "dataset_id (registered dataset)",
+    "GeoTIFF",
+    "knowledge query"
+  ],
+  "outputs": [
+    "mineral occurrence note with citations",
+    "exploration priority list (preliminary flag)",
+    "evidence bundle (claims with levels)"
+  ],
+  "allowed_tools": [
+    "eis-toolkit",
+    "kb_retrieval",
+    "task_ledger",
+    "reception_gate"
+  ],
+  "refusal_conditions": [
+    "تأكيد وجود معدن أو خام من خرائط قابلية الاستكشاف — EIS Toolkit يرتب أولويات المسح الميداني فقط",
+    "أي درجة خام أو مخزون بدون قياسات مسجلة في مخزن الأدلة",
+    "أسئلة خارج نطاق المعادن وتقييم الخامات",
+    "أي ادعاء يحتاج بيانات غير موجودة في مخزن الأدلة"
+  ],
+  "aggregation_rule_ar": "خلاف الوكلاء يُعرض موثقاً بحجتيه ولا يُوسطط ولا يُحسم بالسلطة",
+  "model_policy_ar": "أدوار فوق نموذج واحد أو أكثر — لا نماذج مدربة منفصلة (ADR-0008)",
+  "adr_reference": "ADR-0008"
+}

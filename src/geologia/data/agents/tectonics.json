@@ -1,0 +1,33 @@
+{
+  "schema": "geologia-agent-card/1",
+  "agent_id": "agent-tectonics",
+  "role_ar": "وكيل التكتونيك: قراءة الإطار البنيوي الإقليمي وحركة الصفائح من المصادر المخزنة بإسناد كامل",
+  "role_en": "Tectonics agent: reads the regional structural framework and plate motion from stored sources with full citations.",
+  "inputs": [
+    "dataset_id (registered dataset)",
+    "GeoTIFF",
+    "earthquake catalog upload",
+    "knowledge query"
+  ],
+  "outputs": [
+    "tectonic framework note with citations",
+    "evidence bundle (claims with levels)",
+    "task_ledger entry"
+  ],
+  "allowed_tools": [
+    "gplates",
+    "obspy",
+    "kb_retrieval",
+    "task_ledger",
+    "reception_gate"
+  ],
+  "refusal_conditions": [
+    "أي تنبؤ أو توقع زلزال بموقع وزمن محددين",
+    "أي ادعاء عن حركة الصفائح بدون مقطع مخزن باستشهاده الكامل",
+    "أي جواب يتطلب إزاحة مرجع رأسي بدون شبكة مجتازة للبوابة",
+    "أسئلة خارج نطاق التكتونيك والبنية الإقليمية"
+  ],
+  "aggregation_rule_ar": "خلاف الوكلاء يُعرض موثقاً بحجتيه ولا يُوسطط ولا يُحسم بالسلطة",
+  "model_policy_ar": "أدوار فوق نموذج واحد أو أكثر — لا نماذج مدربة منفصلة (ADR-0008)",
+  "adr_reference": "ADR-0008"
+}

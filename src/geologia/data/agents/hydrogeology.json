@@ -1,0 +1,34 @@
+{
+  "schema": "geologia-agent-card/1",
+  "agent_id": "agent-hydrogeology",
+  "role_ar": "وكيل الهيدروجيولوجيا: محاكاة وتحليل مياه جوفية بمراجع MODFLOW المقبولة فقط وبلا أرقام منسوب من شبكة تقريبية",
+  "role_en": "Hydrogeology agent: groundwater analysis with only the accepted MODFLOW references and no final elevation numbers from approximate grids.",
+  "inputs": [
+    "water-level time series CSV upload",
+    "LAS file",
+    "dataset_id (registered dataset)",
+    "knowledge query"
+  ],
+  "outputs": [
+    "groundwater modelling note with stated validity limits",
+    "evidence bundle (claims with levels)",
+    "task_ledger entry"
+  ],
+  "allowed_tools": [
+    "modflow6",
+    "pastas",
+    "landlab",
+    "kb_retrieval",
+    "task_ledger",
+    "reception_gate"
+  ],
+  "refusal_conditions": [
+    "قبول أرقام منسوب نهائية من شبكة تقريبية بشحن تقديري",
+    "دمج MODFLOW باستشهاد مرجع غير المرجعين المقبولين (USGS TWRI 6-A1 وT&M 6-A55)",
+    "أي جواب يتطلب إزاحة مرجع رأسي بدون شبكة مجتازة للبوابة",
+    "أسئلة خارج نطاق الهيدروجيولوجيا"
+  ],
+  "aggregation_rule_ar": "خلاف الوكلاء يُعرض موثقاً بحجتيه ولا يُوسطط ولا يُحسم بالسلطة",
+  "model_policy_ar": "أدوار فوق نموذج واحد أو أكثر — لا نماذج مدربة منفصلة (ADR-0008)",
+  "adr_reference": "ADR-0008"
+}
