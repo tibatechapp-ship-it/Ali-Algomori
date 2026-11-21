@@ -12,9 +12,19 @@ import pytest
 
 from geologia.data_layer import records as ds
 from geologia.data_layer.provenance import ProvenanceLog
+from geologia.data_layer.readers import capabilities
 from geologia.data_layer.uploads import ingest_bytes, ingest_stream, uploads_dir
 
 DATA = Path(__file__).parent / "data"
+
+# Honest engine gate, same doctrine as test_readers.py: a test that needs a
+# deep-read engine SKIPS with a named reason when the engine is absent — it
+# never fails and never pretends the check happened.
+_cap = capabilities()
+req_lasio = pytest.mark.skipif(
+    not _cap["lasio"],
+    reason="lasio absent — vertical-datum gap on unparsed LAS cannot be "
+           "proven and will NOT be claimed")
 
 
 @pytest.fixture()
@@ -56,6 +66,7 @@ def test_valid_las_upload_is_quarantined_registered_proven(store, prov):
     assert prov.verify()["ok"] is True
 
 
+@req_lasio
 def test_upload_without_declared_crs_keeps_gap_visible(store, prov):
     """A LAS upload carries NO geographic CRS by nature — the honest gap
     for a well log is the undeclared DEPTH datum (vertical trust boundary).
