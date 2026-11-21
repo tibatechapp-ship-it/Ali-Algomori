@@ -170,6 +170,8 @@ def sniff_content(path: Path) -> Tuple[str, str]:
         return "zip", "ZIP local file header"
     if head[:2] == b"\x1f\x8b":
         return "gzip", "gzip magic"
+    if head[:16] == b"SQLite format 3\x00":
+        return "sqlite", "SQLite container magic (GeoPackage candidate)"
     try:
         sample = path.open("rb").read(64 << 10)
         text = sample.decode("utf-8")
@@ -404,7 +406,9 @@ def _unpack_maybe_short(raw: bytes, e: str,
 # ---------------------------------------------------------------------------
 # main entry: check_upload
 # ---------------------------------------------------------------------------
-TEXT_DTYPE_MAGIC_OK = ("las", "csv", "geojson")
+# dtypes whose content validation runs at reception (magic must match one of
+# these or the file is refused as unknown binary).
+TEXT_DTYPE_MAGIC_OK = ("las", "csv", "geojson", "tiff", "gpkg")
 
 
 def check_upload(path: str, declared_name: Optional[str] = None,
@@ -451,12 +455,20 @@ def check_upload(path: str, declared_name: Optional[str] = None,
     if effective == "auto":
         suffix = Path(safe_name).suffix.lower()
         for t, exts in (("las", (".las",)), ("geojson", (".geojson", ".json")),
-                        ("csv", (".csv", ".tsv")), ("tiff", (".tif", ".tiff"))):
+                        ("csv", (".csv", ".tsv")), ("tiff", (".tif", ".tiff")),
+                        ("gpkg", (".gpkg",))):
             if suffix in exts:
                 effective = t
                 break
     if kind in ("zip", "gzip"):
         findings.extend(scan_archive(p))
+    elif kind == "sqlite":
+        if effective not in ("gpkg", "auto"):
+            findings.append(_rfinding(
+                "SEC_EXT_MISMATCH",
+                f"content is SQLite (magic) but declared type is {effective!r}"))
+        else:
+            findings.append(_rfinding("SEC_MAGIC_MATCH", detail))
     elif kind == "tiff":
         if effective not in ("tiff", "auto"):
             findings.append(_rfinding(
@@ -488,7 +500,7 @@ def check_upload(path: str, declared_name: Optional[str] = None,
                                   f"{detail} — refusing unknown binary content"))
 
     content_report = None
-    if run_content_validation and effective in TEXT_DTYPE_MAGIC_OK + ("tiff",):
+    if run_content_validation and effective in TEXT_DTYPE_MAGIC_OK:
         content_report = validate_file(str(p), effective,
                                        declared_crs=declared_crs,
                                        declared_units=declared_units)

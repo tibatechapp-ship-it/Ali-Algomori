@@ -24,12 +24,21 @@ from .evidence import (compile_evidence, ev_read, ev_unverifiable,
 
 # Recognized vertical coordinate systems (closed list; anything outside it
 # is reported as VERT_DATUM_UNKNOWN, never silently accepted).
+#
+# Scientific review (v0.7.0): every entry below was checked against the EPSG
+# database shipped with PROJ — name, CRS type and unit. Two errors were
+# caught and fixed: EPSG:5621 is EVRF2007 height (it had been mislabeled as
+# EGM96 — EGM96 is EPSG:5773), and EPSG:5703 (NAVD88 height) is a metre-unit
+# CRS (the ftUS variant is a different EPSG code). The unit in the label is
+# now part of the contract; test_vertical.py pins this table to the EPSG
+# registry so it can never silently drift again.
 VERTICAL_CS_NAMES: Dict[int, str] = {
-    4979: "WGS 84 3D (ellipsoidal heights)",
-    5703: "NAVD88 height (ftUS/ft) - North American Vertical Datum",
-    5714: "MSL height (EPSG:5714)",
-    3855: "EGM2008 geoid height",
-    5621: "EGM96 geoid height",
+    4979: "WGS 84 (EPSG:4979, Geographic 3D — ellipsoidal heights)",
+    5703: "NAVD88 height (EPSG:5703, metre)",
+    5714: "MSL height (EPSG:5714, metre)",
+    3855: "EGM2008 height (EPSG:3855, metre)",
+    5621: "EVRF2007 height (EPSG:5621, metre)",
+    5773: "EGM96 height (EPSG:5773, metre)",
 }
 
 # GeoTIFF VerticalDatumGeoKey semantic codes.

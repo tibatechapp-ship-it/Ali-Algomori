@@ -3,15 +3,20 @@
 **Geoscience Intelligence Platform** · منصة ذكاء جيولوجي مفتوحة المصدر — عربي / English
 يقودها الوكيل الرئيسي **«المهندس الجمهوري»** (Chief Geoscience Agent).
 
-> **الحالة الحالية: المرحلة 0.6.0 — طبقة الإثبات: قرّاء حقيقيون + أدلة ثلاثية + سجل مصدر + مرجع مجمد**
+> **الحالة الحالية: المرحلة 0.7.0 — حدود الاستقبال عبر HTTP + مراجعة علمية مستقلة للمراجع**
 > لا يوجد أي محرك طرف ثالث مثبت أو مدمج بعد، واعتماده مرفوض في الكود حتى دورة حياة كاملة.
 > ما يعمل الآن: نواة API + سجل محركات (عائلتان) + مخطّط حتمي (9 مجالات) + **طبقة معرفة
 > استرجاعية بلا هلوسة** + **بوابة استقبال آمنة** (حدود حجم، تفتيش بايتات سحرية، أمان
 > أرشيفات بلا استخراج، تعقيم أسماء بعلامات bidi) + **طبقة تحقق معلن-مقابل-ملاحظ**
-> (بصمات + مدقق LAS/GeoJSON/CSV/TIFF + فحص CRS والوحدات المعلنة ضد المحتوى الفعلي)
+> (بصمات + مدقق LAS/GeoJSON/CSV/TIFF/GPKG + فحص CRS والوحدات المعلنة ضد المحتوى الفعلي)
+> + **نقطة رفع حية `/api/v1/uploads`**: جسم خام، سقف مزدوج، حجر صحي خام غير قابل للتعديل،
+> سجل مصدر لكل حكم حتى الرفض ([ADR-0007](docs/adr/0007-http-upload-boundary.md))
+> + **طبقة إثبات**: قرّاء حقيقيون (lasio/tifffile/sqlite3) + أدلة ثلاثية المستويات +
+> سجل مصدر مضاد للتلاعب + **مرجع مجمّد مستقل عن المحرك** (معادلات EPSG:3857 المنشورة
+> بلا pyproj + جدول رأسي مثبت على سجل EPSG)
 > + **سجل مهام ببوابات إلزامية وعزل** + **مسار اعتماد `certified` بأول محرك علمي
-> أول-الطرف (`porosity_density_v1`) بمرجع مثبت وتقرير تنفيذ بالأدلة وحدود عدم يقين** —
-> وفق [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md) و[ADR-0005](docs/adr/0005-file-reception-security.md):
+> أول-الطرف (`porosity_density_v1`)** — وفق [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md)
+> و[ADR-0005](docs/adr/0005-file-reception-security.md):
 > **نجاح CI ليس شهادة صحة النتائج الجيولوجية** — الأمان والصلاحية والصحة العلمية
 > ثلاث شهادات منفصلة، وكل واحدة بدليلها.
 
@@ -71,6 +76,9 @@ pytest -q
 | POST | `/api/v1/knowledge/query` | **استرجاع فقط**: مقطع مخزن باستشهاده أو «ليس في المكتبة» |
 | POST | `/api/v1/datasets` · `GET /api/v1/datasets` | تسجيل مجموعة بيانات حقيقية بهوية sha256 |
 | POST | `/api/v1/datasets/{id}/validate` · `/verify-checksum` | تحقق صيغة (TIFF بنيوي) + تحقق بصمة ضد العبث |
+| GET | `/api/v1/datasets/{id}/proof` | **إعادة إثبات حية**: ثلاثية أدلة جديدة من البايتات الحية + سجل مصدر جديد |
+| GET | `/api/v1/uploads/policy` | عقد الاستقبال قبل إرسال بايت: السقف، الحاجات، الأحكام |
+| POST | `/api/v1/uploads` | **بوابة الرفع الحية**: جسم خام + سقف مزدوج + حجر صحي + إثبات ثلاثي + provenance لكل حكم حتى الرفض |
 | POST | `/api/v1/tasks` · `GET /api/v1/tasks` | سجل مهام بمواصفة عزل |
 | POST | `/api/v1/tasks/{id}/transition` | انتقال محكوم بالبوابات؛ التنفيذ **409** قبل بوابة `certified` |
 | POST | `/api/v1/tasks/{id}/execute` | تنفيذ المحرك المعتمد فقط + كشف عبث لحظة التنفيذ |
@@ -81,6 +89,10 @@ pytest -q
 ```bash
 curl -X POST localhost:8000/api/v1/plans -H "Content-Type: application/json" -d '{"request": "ادرس احتمالية المياه الجوفية حول هذه الإحداثيات"}'
 curl -X POST localhost:8000/api/v1/plans -H "Content-Type: application/json" -d '{"request": "مرحبا"}'   # ← 422 unknown_domain، لا خطة مُصطنعة
+
+curl -X POST "localhost:8000/api/v1/uploads?filename=well.las&declared_crs=local_depth" \
+     -H "Content-Type: application/octet-stream" --data-binary @well.las   # ← حكم صادق: proven أو proven_with_unverified_claims أو 422 بالرموز
+curl localhost:8000/api/v1/datasets/ds-ab12cd34ef56/proof               # ← إعادة إثبات حية من البايتات الحية
 ```
 
 ## البنية

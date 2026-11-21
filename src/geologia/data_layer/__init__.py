@@ -52,6 +52,12 @@ from geologia.data_layer.vertical import (
     classify_vertical_geokeys,
     vertical_findings,
 )
+from geologia.data_layer.uploads import ingest_bytes, ingest_stream
+from geologia.data_layer.transforms_math import (
+    pseudo_mercator,
+    inverse_pseudo_mercator,
+    verify_frozen_equation_points,
+)
 
 __all__ = [
     "register_dataset", "list_datasets", "get_dataset", "validate_dataset",
@@ -68,4 +74,8 @@ __all__ = [
     "verify_transformations", "verify_reference_dir",
     "transformations_fingerprint", "classify_vertical_geokeys",
     "vertical_findings",
+    # v0.7.0: HTTP upload ingestion (library-level, no HTTP concepts) +
+    # engine-independent EPSG:3857 verification from published equations.
+    "ingest_bytes", "ingest_stream", "pseudo_mercator",
+    "inverse_pseudo_mercator", "verify_frozen_equation_points",
 ]

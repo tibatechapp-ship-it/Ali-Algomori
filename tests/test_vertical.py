@@ -3,13 +3,34 @@
 A height without a datum is a number, not a measurement. These tests pin
 the recognition table, the honest unknown/missing handling, and the
 WKT-vs-GeoTIFF conflict detection.
+
+v0.7.0: the recognition table is additionally pinned to the EPSG database
+shipped with PROJ (independent scientific review) — a table that mislabels
+an EPSG code poisons every downstream datum claim.
 """
 
-from geologia.data_layer.vertical import (check_vertical_consistency,
+import pytest
+
+from geologia.data_layer.vertical import (VERTICAL_CS_NAMES,
+                                          check_vertical_consistency,
                                           classify_vertical_geokeys,
                                           las_depth_datum, vertical_evidence,
                                           vertical_findings, wkt_vertical,
                                           wkt_vertical_evidence)
+
+
+def _has_pyproj():
+    try:
+        import pyproj  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+requires_pyproj = pytest.mark.skipif(
+    not _has_pyproj(),
+    reason="pyproj absent — EPSG registry cross-check cannot run and will "
+           "NOT be claimed")
 
 
 def finding_codes(findings):
@@ -19,7 +40,7 @@ def finding_codes(findings):
 # --- classification ---------------------------------------------------------------
 def test_recognized_vertical_cs():
     v = classify_vertical_geokeys({4096: 5714, 4097: 3, 4098: 9001})
-    assert v["cs_name"] == "MSL height (EPSG:5714)"
+    assert v["cs_name"] == "MSL height (EPSG:5714, metre)"
     assert v["datum_name"] == "mean sea level datum"
     assert v["units_name"] == "metre"
     assert finding_codes(vertical_findings(v)) == ["VERT_DATUM_OK"]
@@ -29,6 +50,54 @@ def test_ellipsoidal_vertical_is_recognized():
     v = classify_vertical_geokeys({4096: 4979, 4097: 2, 4098: 9001})
     assert "ellipsoidal" in v["cs_name"]
     assert finding_codes(vertical_findings(v)) == ["VERT_DATUM_OK"]
+
+
+# --- EPSG registry pinning (independent scientific review, v0.7.0) -------
+@requires_pyproj
+def test_vertical_table_matches_epsg_registry():
+    """Every code in the closed vertical table must match the EPSG database
+    shipped with PROJ: exact registry name, CRS type and unit.
+
+    History justifying this test: EPSG:5621 had been mislabeled as
+    "EGM96 geoid height" (it is EVRF2007 height; EGM96 is EPSG:5773), and
+    EPSG:5703 carried an ftUS/ft unit implication while its EPSG definition
+    is metre. A wrong datum label is worse than no datum label.
+    """
+    from pyproj import CRS
+    for code, label in VERTICAL_CS_NAMES.items():
+        assert f"EPSG:{code}" in label, f"{code}: label must cite its EPSG code"
+        c = CRS.from_epsg(code)
+        # exact registry name must appear verbatim in our label
+        assert c.name in label, (
+            f"{code}: table says {label!r} but EPSG registry name is {c.name!r}")
+        if code == 4979:
+            assert c.type_name == "Geographic 3D CRS"
+            axes = [f"{a.name}/{a.unit_name}" for a in c.axis_info]
+            assert "Ellipsoidal height/metre" in axes
+        else:
+            assert c.type_name == "Vertical CRS", (
+                f"{code}: expected a Vertical CRS, got {c.type_name}")
+            for a in c.axis_info:
+                assert a.name == "Gravity-related height", (
+                    f"{code}: unexpected axis {a.name}")
+                assert a.unit_name == "metre", (
+                    f"{code}: table implies metre but EPSG unit is "
+                    f"{a.unit_name}")
+
+
+@requires_pyproj
+def test_reviewed_errors_are_fixed():
+    """The two errors caught by the v0.7.0 review stay fixed forever."""
+    from pyproj import CRS
+    # 5621 is EVRF2007 — NOT EGM96
+    assert "EVRF2007" in VERTICAL_CS_NAMES[5621]
+    assert CRS.from_epsg(5621).name == "EVRF2007 height"
+    # EGM96 is 5773 and it is in the table with its registry name
+    assert VERTICAL_CS_NAMES[5773].startswith("EGM96 height")
+    assert CRS.from_epsg(5773).name == "EGM96 height"
+    # 5703 is a metre CRS — no foot claim in its label
+    assert "metre" in VERTICAL_CS_NAMES[5703]
+    assert "ft" not in VERTICAL_CS_NAMES[5703]
 
 
 def test_unknown_vertical_cs_is_flagged_not_accepted():

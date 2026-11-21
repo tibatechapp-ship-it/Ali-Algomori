@@ -1,20 +1,26 @@
 # Honest nucleus: health + read-only engine registry + deterministic planner
 # + retrieval-only knowledge base + dataset verification + gated task ledger
-# + first-party certified engine execution with evidence reports.
+# + first-party certified engine execution with evidence reports
+# + HTTP upload boundary routing every byte through the reception gate.
 import json
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from geologia import __version__
 from geologia.data_layer import records as ds
 from geologia.data_layer import tasks as tl
+from geologia.data_layer import uploads as up
 from geologia.data_layer.certification import (
     CertificationRefused,
     certify_engine,
 )
+from geologia.data_layer.evidence import prove_file
+from geologia.data_layer.provenance import ProvenanceLog
+from geologia.data_layer.reception import max_upload_bytes
 from geologia.knowledge.retrieval import get_kb
 from geologia.planner import UnknownDomainError, build_plan, list_planner_domains
 from geologia.registry import certified_engines, get_engine, list_engines
@@ -222,6 +228,117 @@ def verify_checksum(dataset_id: str) -> dict:
         return ds.verify_checksum(dataset_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="dataset_id not found")
+
+
+# ---------------------------------------------------------------------------
+# Upload boundary (ADR-0007): raw octet-stream POST routed through the
+# reception gate. The endpoint is deliberately THIN — it enforces the
+# transport-side size cap and streams; every other decision belongs to
+# data_layer (reception security -> registration -> proof -> provenance).
+# ---------------------------------------------------------------------------
+@app.get("/api/v1/uploads/policy")
+def upload_policy() -> dict:
+    """Reception policy a client must respect BEFORE sending bytes."""
+    return {
+        "method": "POST /api/v1/uploads",
+        "body": "application/octet-stream (raw file bytes; no multipart)",
+        "max_upload_bytes": max_upload_bytes(),
+        "cap_env": "GEOLOGIA_MAX_UPLOAD_BYTES",
+        "query_params": {
+            "filename": "required — client name; sanitized, never trusted",
+            "dtype": "auto|las|csv|geojson|tiff|gpkg (default auto)",
+            "declared_crs": "optional declaration, recorded as declared",
+            "declared_units": "optional declaration, recorded as declared",
+        },
+        "verdicts": {
+            "200": ["proven", "proven_with_unverified_claims",
+                    "needs_review (archive: members must be inspected "
+                    "individually)"],
+            "413": ["SEC_TOO_LARGE — refused before reading the body"],
+            "422": ["rejected (security gate) / refused (content proof)",
+                    "rejection codes are evidence, not secrets"],
+        },
+        "provenance": "every verdict — including refusals — is appended "
+                      "to the tamper-evident chain",
+        "raw_storage": "immutable content-addressed quarantine; the raw "
+                       "upload is never modified",
+    }
+
+
+@app.post("/api/v1/uploads")
+async def upload_file(
+    request: Request,
+    filename: str = Query(..., min_length=1, max_length=255),
+    dtype: str = Query("auto"),
+    declared_crs: Optional[str] = Query(None, max_length=100),
+    declared_units: Optional[str] = Query(None, max_length=100),
+) -> dict:
+    cap = max_upload_bytes()
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            if int(content_length) > cap:
+                raise HTTPException(status_code=413, detail={
+                    "error": "upload_too_large",
+                    "status": "rejected",
+                    "codes": ["SEC_TOO_LARGE"],
+                    "message": f"content-length {content_length} exceeds the "
+                               f"{cap}-byte reception cap "
+                               f"(GEOLOGIA_MAX_UPLOAD_BYTES) — body not read",
+                })
+        except ValueError:
+            raise HTTPException(status_code=400,
+                                detail="content-length is not an integer")
+    buf = bytearray()
+    async for chunk in request.stream():
+        if chunk:
+            buf.extend(chunk)
+            if len(buf) > cap:
+                raise HTTPException(status_code=413, detail={
+                    "error": "upload_too_large",
+                    "status": "rejected",
+                    "codes": ["SEC_TOO_LARGE"],
+                    "message": f"body exceeded the {cap}-byte reception cap "
+                               f"mid-stream — upload aborted",
+                })
+    result = await run_in_threadpool(
+        up.ingest_bytes, bytes(buf), filename, dtype,
+        declared_crs, declared_units, ProvenanceLog())
+    if result["status"] in ("rejected", "refused"):
+        raise HTTPException(status_code=422, detail={
+            "error": "upload_refused",
+            "status": result["status"],
+            "declared_name": result["declared_name"],
+            "dataset_id": result["dataset_id"],
+            "codes": [f["code"] for f in
+                      (result["reception"]["findings"]
+                       + (result["proof"] or {}).get("findings", []))
+                      if f["severity"] == "error"],
+            "reception": result["reception"],
+            "proof": result["proof"],
+        })
+    return result
+
+
+@app.get("/api/v1/datasets/{dataset_id}/proof")
+def dataset_proof(dataset_id: str) -> dict:
+    """Re-prove a dataset on demand: one fresh parse, a fresh evidence
+    triple, and a new provenance record — proof is an activity, not a
+    stored opinion."""
+    rec = ds.get_dataset(dataset_id)
+    if rec is None:
+        raise HTTPException(status_code=404, detail="dataset_id not found")
+    if not Path(rec["path"]).exists():
+        raise HTTPException(status_code=404, detail={
+            "error": "file_missing",
+            "message": f"dataset file no longer exists: {rec['path']}",
+        })
+    report = prove_file(rec["path"], dtype=rec.get("dtype") or "auto",
+                        declared_crs=rec.get("declared_crs"),
+                        declared_units=rec.get("declared_units"),
+                        provenance=ProvenanceLog())
+    ds.attach_upload_proof(dataset_id, report)
+    return report
 
 
 # ---------------------------------------------------------------------------

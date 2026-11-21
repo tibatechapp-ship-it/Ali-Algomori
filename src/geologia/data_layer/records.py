@@ -155,3 +155,34 @@ def _now() -> str:
 def dataset_is_validated_pass(ds_id: str) -> bool:
     ds = get_dataset(ds_id)
     return bool(ds and ds.get("validation", {}) and ds["validation"]["status"] == "pass")
+
+
+def attach_upload_proof(ds_id: str, proof_report: dict) -> dict:
+    """Store the honest proof verdict of an upload on its dataset record.
+
+    proof_report is a prove_file() report: validation status + findings +
+    evidence triple + proof_status (refused | proven |
+    proven_with_unverified_claims). The record status never claims more
+    than the proof did — a dataset with unverifiable claims stays
+    'proven_with_gaps', never silently 'proven'.
+    """
+    record = get_dataset(ds_id)
+    if record is None:
+        raise KeyError(ds_id)
+    record["validation"] = {
+        "status": proof_report["status"],
+        "findings": proof_report["findings"],
+        "validated_at": _now(),
+    }
+    record["proof"] = {
+        "proof_status": proof_report["proof_status"],
+        "evidence_counts": proof_report["evidence"]["counts"],
+        "proven_at": _now(),
+    }
+    record["status"] = {
+        "refused": "proof_refused",
+        "proven": "proven",
+        "proven_with_unverified_claims": "proven_with_gaps",
+    }[proof_report["proof_status"]]
+    _save(record)
+    return record

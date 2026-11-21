@@ -5,12 +5,19 @@
     "pyproj": "3.8.0",
     "proj": "9.8.1"
   },
-  "note": "Expected values are frozen, hand-reviewed control points. These are plain transverse-mercator conversions with no datum-shift grids involved, so they are deterministic across PROJ versions. A mismatch beyond tolerance is a hard error: the layer must refuse to trust its transformation engine, not adjust the reference.",
-  "tolerance_note": "Forward checks: metres, tolerance 0.001 m (mm-level frozen values). Round-trip check: degrees, tolerance 1e-7 (closure of a full forward+inverse cycle).",
+  "note": "Expected values are frozen, hand-reviewed control points with two documented provenance classes. Class 'pyproj_frozen_transverse_mercator' (UTM points): plain transverse-mercator conversions with no datum-shift grids involved, deterministic across PROJ versions; values frozen once and re-proven by the engine. Class 'epsg_method_1024_equations' (EPSG:3857 points): values derived analytically from the published spherical-Mercator equations — independent of any transformation library, re-provable even where pyproj is absent (pure-Python Termux track). A mismatch beyond tolerance is a hard error: the layer must refuse to trust its transformation engine or its reference, not adjust the reference.",
+  "tolerance_note": "Forward checks: metres — UTM tolerance 0.001 m (mm-level frozen values); EPSG:3857 tolerance 1e-6 m (equation re-derivation is exact on one platform; 1e-6 m absorbs cross-platform libm drift of ~1 ulp, observed engine-vs-equation diff is ~1e-9 m). Round-trip checks: degrees — UTM closure 1e-7, EPSG:3857 closure 1e-12 (observed closure error over a full grid is ~3e-14 deg).",
+  "references": {
+    "epsg_3857": "EPSG:3857 'WGS 84 / Pseudo-Mercator', EPSG method 1024 'Popular Visualisation Pseudo Mercator', formulas per EPSG Guidance Note 7-2: X = R*lambda, Y = R*ln[tan(pi/4 + phi/2)], R = 6378137 m (WGS84 semi-major axis); inverse phi = 2*atan(exp(Y/R)) - pi/2",
+    "epsg_utm": "EPSG:32637/32638/32639 'WGS 84 / UTM zone 37N/38N/39N', transverse mercator without datum-shift grids (deterministic across PROJ versions)",
+    "vertical_crs": "Vertical references verified against the EPSG database shipped with PROJ: EPSG:5714 'MSL height', EPSG:5773 'EGM96 height', EPSG:3855 'EGM2008 height', EPSG:5703 'NAVD88 height' (metre), EPSG:5621 'EVRF2007 height', EPSG:4979 'WGS 84' (Geographic 3D, ellipsoidal heights)",
+    "crs_model": "ISO 19111:2019 (referencing by coordinates, incl. compound CRS) and OGC 18-010r7 'Well-known text representation of coordinate reference systems' (WKT2) — the representation the WKT VERTCS reader in data_layer/vertical.py parses"
+  },
   "transformations": [
     {
       "name": "riyadh_wgs84_to_utm38n",
       "kind": "forward",
+      "source": "pyproj_frozen_transverse_mercator",
       "from_crs": "EPSG:4326",
       "to_crs": "EPSG:32638",
       "x": 46.6753,
@@ -24,6 +31,7 @@
     {
       "name": "jeddah_wgs84_to_utm37n",
       "kind": "forward",
+      "source": "pyproj_frozen_transverse_mercator",
       "from_crs": "EPSG:4326",
       "to_crs": "EPSG:32637",
       "x": 39.1925,
@@ -37,6 +45,7 @@
     {
       "name": "dammam_wgs84_to_utm39n",
       "kind": "forward",
+      "source": "pyproj_frozen_transverse_mercator",
       "from_crs": "EPSG:4326",
       "to_crs": "EPSG:32639",
       "x": 50.1039,
@@ -50,6 +59,7 @@
     {
       "name": "riyadh_utm38n_to_wgs84_roundtrip",
       "kind": "roundtrip",
+      "source": "pyproj_frozen_transverse_mercator",
       "from_crs": "EPSG:32638",
       "to_crs": "EPSG:4326",
       "x": 669459.62161,
@@ -59,6 +69,62 @@
       "tol": 1e-07,
       "tol_unit": "deg",
       "place": "Riyadh round-trip closure: forward then inverse must return the original point"
+    },
+    {
+      "name": "riyadh_wgs84_to_3857",
+      "kind": "forward",
+      "source": "epsg_method_1024_equations",
+      "from_crs": "EPSG:4326",
+      "to_crs": "EPSG:3857",
+      "x": 46.6753,
+      "y": 24.7136,
+      "expected_x": 5195870.628623282,
+      "expected_y": 2840607.6257099733,
+      "tol": 1e-06,
+      "tol_unit": "m",
+      "place": "Riyadh, Kingdom of Saudi Arabia — value derived from the published equations, engine-independent"
+    },
+    {
+      "name": "jeddah_wgs84_to_3857",
+      "kind": "forward",
+      "source": "epsg_method_1024_equations",
+      "from_crs": "EPSG:4326",
+      "to_crs": "EPSG:3857",
+      "x": 39.1925,
+      "y": 21.4858,
+      "expected_x": 4362889.142915375,
+      "expected_y": 2449900.2161562033,
+      "tol": 1e-06,
+      "tol_unit": "m",
+      "place": "Jeddah, Kingdom of Saudi Arabia — value derived from the published equations, engine-independent"
+    },
+    {
+      "name": "dammam_wgs84_to_3857",
+      "kind": "forward",
+      "source": "epsg_method_1024_equations",
+      "from_crs": "EPSG:4326",
+      "to_crs": "EPSG:3857",
+      "x": 50.1039,
+      "y": 26.4207,
+      "expected_x": 5577540.6347571,
+      "expected_y": 3051280.434113087,
+      "tol": 1e-06,
+      "tol_unit": "m",
+      "place": "Dammam, Kingdom of Saudi Arabia — value derived from the published equations, engine-independent"
+    },
+    {
+      "name": "riyadh_3857_to_wgs84_roundtrip",
+      "kind": "roundtrip",
+      "source": "epsg_method_1024_equations",
+      "from_crs": "EPSG:3857",
+      "to_crs": "EPSG:4326",
+      "x": 5195870.628623282,
+      "y": 2840607.6257099733,
+      "expected_x": 46.6753,
+      "expected_y": 24.7136,
+      "tol": 1e-12,
+      "tol_unit": "deg",
+      "place": "Riyadh round-trip closure through EPSG:3857: inverse equations must return the original point"
     }
   ]
 }
