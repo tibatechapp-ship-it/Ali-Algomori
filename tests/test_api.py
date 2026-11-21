@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from geologia.api import app
@@ -5,22 +6,36 @@ from geologia.api import app
 client = TestClient(app)
 
 
-def test_health():
+@pytest.fixture()
+def store(tmp_path, monkeypatch):
+    d = tmp_path / "geologia-store"
+    d.mkdir(parents=True)
+    monkeypatch.setenv("GEOLOGIA_DATA_DIR", str(d))
+    return d
+
+
+def test_health(store):
     r = client.get("/health")
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["engines_integrated"] == 0
+    assert body["engines_integrated"] == 0  # no store -> nothing certified
 
 
-def test_registry_honesty_gate():
+def test_registry_honesty_gate(store):
     r = client.get("/api/v1/engines")
     assert r.status_code == 200
     engines = r.json()["engines"]
-    assert len(engines) == 30
-    for e in engines:
+    third = [e for e in engines if e["family"] == "third_party"]
+    first = [e for e in engines if e["family"] == "first_party"]
+    assert len(third) == 30
+    assert len(first) >= 1
+    for e in third:
         assert e["status"] == "planned"
         assert e["license_status"] == "unverified"
+    fp = next(e for e in first if e["engine_id"] == "porosity_density_v1")
+    assert fp["status"] == "planned"  # not certified in a fresh store
+    assert fp["license_status"] == "verified"  # first-party: own license
 
 
 def test_engine_detail_and_404():

@@ -9,7 +9,10 @@
 #   geologia verify PATH [--type auto|las|geojson|csv|tiff]
 #   geologia dataset add NAME PATH [--dtype auto] [--crs ...] [--units ...]
 #   geologia dataset list | geologia dataset validate ID | geologia dataset checksum ID
-#   geologia task create TITLE ENGINE_ID DS... | geologia task list | geologia task go ID
+#   geologia certify ENGINE_ID           (first-party engines only)
+#   geologia task create TITLE ENGINE_ID DS... [--param KEY=VAL ...]
+#   geologia task list | geologia task go ID STATE
+#   geologia task execute ID | geologia task report ID | geologia task verify ID
 #   geologia serve [--host HOST] [--port PORT]
 # Or: python -m geologia ...
 import argparse
@@ -45,6 +48,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_eng.add_argument("--domain", default=None)
     p_det = sub.add_parser("engine", help="show one engine card")
     p_det.add_argument("engine_id")
+
+    p_cer = sub.add_parser(
+        "certify", help="certify a first-party engine via its pinned reference test")
+    p_cer.add_argument("engine_id")
 
     p_k = sub.add_parser("knowledge", help="knowledge base (retrieval-only)")
     ksub = p_k.add_subparsers(dest="kcmd", required=True)
@@ -86,10 +93,18 @@ def _build_parser() -> argparse.ArgumentParser:
     p_tc.add_argument("title")
     p_tc.add_argument("engine_id")
     p_tc.add_argument("dataset_ids", nargs="+")
+    p_tc.add_argument("--param", action="append", default=[],
+                      metavar="KEY=VAL", help="engine parameter (repeatable)")
     tsub.add_parser("list")
     p_tg = tsub.add_parser("go")
     p_tg.add_argument("task_id")
     p_tg.add_argument("to_state")
+    p_te = tsub.add_parser("execute", help="run the certified engine (gates enforced)")
+    p_te.add_argument("task_id")
+    p_tr = tsub.add_parser("report", help="show the execution evidence report")
+    p_tr.add_argument("task_id")
+    p_tv = tsub.add_parser("verify", help="mark executed task verified (evidence gate)")
+    p_tv.add_argument("task_id")
 
     p_serve = sub.add_parser("serve", help="run the API locally (needs uvicorn)")
     p_serve.add_argument("--host", default="127.0.0.1")
@@ -135,6 +150,21 @@ def main(argv: Optional[List[str]] = None) -> int:
             return 2
         _print(card)
         return 0
+
+    if args.command == "certify":
+        from geologia.data_layer.certification import CertificationRefused, certify_engine
+        try:
+            report = certify_engine(args.engine_id)
+        except ValueError as exc:
+            print(f"[!] {exc}", file=sys.stderr)
+            return 2
+        except CertificationRefused as exc:
+            _print({"error": "certification_refused", "reasons": exc.reasons,
+                    "message": str(exc)})
+            print("[!] رُفض الاعتماد — هذا سلوك مقصود (سياسة الدمج).", file=sys.stderr)
+            return 3
+        _print(report)
+        return 0 if report["certified"] else 3
 
     if args.command == "knowledge":
         from geologia.knowledge.retrieval import get_kb
@@ -194,9 +224,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.command == "task":
         from geologia.data_layer import tasks as tl
         if args.tcmd == "create":
+            params = {}
+            for kv in args.param:
+                key, _, val = kv.partition("=")
+                try:
+                    params[key.strip()] = float(val) if "." in val else int(val)
+                except ValueError:
+                    params[key.strip()] = val
             try:
                 _print(tl.create_task(title=args.title, engine_id=args.engine_id,
-                                      dataset_ids=args.dataset_ids))
+                                      dataset_ids=args.dataset_ids, params=params))
             except ValueError as exc:
                 print(f"[!] {exc}", file=sys.stderr)
                 return 2
@@ -218,6 +255,32 @@ def main(argv: Optional[List[str]] = None) -> int:
             except ValueError as exc:
                 print(f"[!] {exc}", file=sys.stderr)
                 return 2
+            return 0
+        if args.tcmd in ("execute", "verify"):
+            target = "executed" if args.tcmd == "execute" else "verified"
+            try:
+                _print(tl.transition(args.task_id, target, reason=f"cli {args.tcmd}"))
+            except KeyError:
+                print("[!] task_id غير موجود.", file=sys.stderr)
+                return 2
+            except tl.TaskGateError as exc:
+                _print({"error": "gate_refused", "gate": exc.gate, "message": exc.message})
+                print("[!] البوابة رفضت التنفيذ — هذا سلوك مقصود.", file=sys.stderr)
+                return 3
+            return 0
+        if args.tcmd == "report":
+            import json as _json
+            from pathlib import Path as _Path
+            task = tl.get_task(args.task_id)
+            if task is None:
+                print("[!] task_id غير موجود.", file=sys.stderr)
+                return 2
+            path = task.get("execution_report_path")
+            if not path or not _Path(path).exists():
+                _print({"error": "no_execution_report",
+                        "message": "المهمة لم تُنفذ بعد — لا تقرير أدلة"})
+                return 1
+            _print(_json.loads(_Path(path).read_text(encoding="utf-8")))
             return 0
 
     if args.command == "serve":

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geologia"
-version = "0.3.0"
+version = "0.4.0"
 description = "GEOLOGIA - open-source bilingual geoscience intelligence platform (foundation)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "httpx>=0.24"]
+dev = ["pytest>=7", "httpx>=0.24", "uvicorn>=0.30"]
 lint = ["ruff>=0.5"]
 
 [project.scripts]
@@ -24,7 +24,7 @@ geologia = "geologia.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-geologia = ["data/*.json"]
+geologia = ["data/*.json", "data/reference/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

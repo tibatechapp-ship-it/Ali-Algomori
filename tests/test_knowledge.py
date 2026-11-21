@@ -29,11 +29,14 @@ def test_every_entry_has_confidence_and_keywords():
         assert e.title_ar and e.origin_type
 
 
-def test_engine_kb_matches_registry_ids():
+def test_engine_kb_matches_third_party_registry_ids():
+    # The knowledge engine KB documents third-party tools; first-party engines
+    # carry their own reference documentation (data/reference/).
     from geologia.registry import ENGINES
     kb_ids = {c["engine_id"] for c in load_engine_kb()}
-    reg_ids = {e["engine_id"] for e in ENGINES}
-    assert kb_ids == reg_ids
+    third_party_ids = {e["engine_id"] for e in ENGINES
+                       if e["family"] == "third_party"}
+    assert kb_ids == third_party_ids
 
 
 def test_digest_documents_packaged():

@@ -120,8 +120,13 @@ def transition(task_id: str, to_state: str, reason: str = "",
     - planned -> inputs_validated : every dataset must be registered AND have
       a passed validation report.
     - inputs_validated -> ready   : engine must be 'certified', pinned version
-      and resource limits present. (Impossible in foundation phase.)
-    - ready -> executed           : same certification gate; refused here.
+      and resource limits present.
+    - ready -> executed           : same certification gate, then execution-time
+      checksum re-verification + the certified engine actually runs and writes
+      an evidence report (data_layer/executor.py).
+    - executed -> verified        : gate 4 as code — the evidence report must be
+      complete (inputs+checksums, citations, params, results, uncertainty,
+      validity limits, disclaimers).
     - planned -> rejected         : allowed with a reason (honest closure).
     """
     task = get_task(task_id)
@@ -162,6 +167,23 @@ def transition(task_id: str, to_state: str, reason: str = "",
             msg = (EXECUTION_REFUSAL_AR if language == "ar" else EXECUTION_REFUSAL_EN)
             raise TaskGateError(f"{msg} | gates: {'; '.join(problems)}",
                                 gate="engine_certification", language=language)
+    if to_state == "executed":
+        # Certification gate passed -> run for real, with execution-time
+        # integrity checks. Any refusal raises before the state flips.
+        from geologia.data_layer.executor import run_task_execution
+        report = run_task_execution(task, language=language)
+        task["execution_report_path"] = report["report_path"]
+        task["execution_summary"] = {
+            "engine_id": report["engine_id"],
+            "engine_version": report["engine_version"],
+            "n_results": len(report["results"]),
+            "issue_codes": [i["code"] for i in report.get("issues", [])],
+            "sigma_phi_vv": report["uncertainty"]["sigma_phi_vv"],
+            "citations": len(report["method"]["citations"]),
+        }
+    if to_state == "verified":
+        from geologia.data_layer.executor import verify_evidence
+        verify_evidence(task, language=language)
     task["state"] = to_state
     task["history"].append({"at": _now(), "from": current, "to": to_state,
                             "gate": "passed" if to_state != "rejected" else "rejected",

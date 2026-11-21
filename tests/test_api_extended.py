@@ -131,7 +131,7 @@ def test_task_create_with_unknown_engine_422(store):
     assert r.status_code == 422
 
 
-def test_health_reports_acceptance_standard():
+def test_health_reports_acceptance_standard(store):
     r = client.get("/health")
     body = r.json()
     assert body["engines_integrated"] == 0

@@ -66,11 +66,30 @@ def test_golden_csv_passes_and_bad_csv_fails():
     assert "CSV_DUP_ROWS" in codes
 
 
-def test_tiff_magic_check_and_missing_file(tmp_path):
+def test_tiff_golden_tile_passes_with_geo_tags():
+    from geologia.data_layer.validators import validate_file
+    report = validate_file(str(DATA / "golden_dem_tile.tif"), "tiff")
+    assert report["status"] == "pass"
+    codes = [f["code"] for f in report["findings"]]
+    assert "TIFF_OK" in codes and "TIFF_GEO_TAGS" in codes
+
+
+def test_tiff_truncated_golden_fails():
+    from geologia.data_layer.validators import validate_file
+    report = validate_file(str(DATA / "golden_dem_truncated.tif"), "tiff")
+    assert report["status"] == "fail"
+    assert "TIFF_TRUNCATED" in [f["code"] for f in report["findings"]]
+
+
+def test_tiff_fake_magic_no_longer_passes(tmp_path):
+    # v0.3.0 accepted any II/MM magic; v0.4.0 hardening requires a real IFD
+    # with the mandatory tags — a fake container must fail honestly.
     from geologia.data_layer.validators import validate_file
     tif = tmp_path / "fake.tif"
     tif.write_bytes(b"II*\x00" + b"\x00" * 64)
-    assert validate_file(str(tif))["status"] == "pass"
+    report = validate_file(str(tif), "tiff")
+    assert report["status"] == "fail"
+    assert "TIFF_NO_IFD" in [f["code"] for f in report["findings"]]
     missing = validate_file(str(tmp_path / "nope.tif"))
     assert missing["status"] == "fail"
     assert missing["findings"][0]["code"] == "GEN_FILE_MISSING"

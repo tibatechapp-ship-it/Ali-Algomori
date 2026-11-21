@@ -1,0 +1,37 @@
+{
+  "registry_version": "0.4.0",
+  "note_ar": "محركات أول-الطرف: حتمية، بلا اعتماديات خارجية، تُعتمد فقط عبر اختبار مرجعي مثبت في data/reference/ — محركات الطرف الثالث تبقى في engines.json ولا يمكن اعتمادها قبل بوابة sandboxed/integrated وفق سياسة الدمج.",
+  "engines": [
+    {
+      "engine_id": "porosity_density_v1",
+      "name": "Density-Log Porosity (first-party)",
+      "domain": "well_logs",
+      "family": "first_party",
+      "version": "1.0.0",
+      "capabilities": [
+        "porosity_from_bulk_density",
+        "density_log_qc"
+      ],
+      "status": "planned",
+      "license_status": "verified",
+      "integration_phase": 0,
+      "role_ar": "منسوب المسامية من سجل الكثافة بصيغة موثقة (φD = (ρma−ρb)/(ρma−ρfl)) — حتمي، بلا أي اعتمادية خارجية، وتقريره يحمل الاستشهادات وحدود عدم اليقين والصلاحية",
+      "input_contract": {
+        "dtype": "las",
+        "count": 1,
+        "required_curve": "RHOB",
+        "unit": "g/cm3"
+      },
+      "method_citations": [
+        "Asquith, G.B., Krygowski, D. (2004). Basic Well Log Analysis, 2nd ed. AAPG Methods in Exploration 16 — density porosity equation.",
+        "Rider, M., Kennedy, M. (2011). The Geological Interpretation of Well Logs, 3rd ed. — density log; grain/fluid density defaults."
+      ],
+      "validity_limits_ar": [
+        "الصيغة تفترض كثافة مصفوفة رملية (ρma = 2.65)؛ للكلس 2.71 وللدولوميت 2.87 — خارج ذلك النطاق الصيغة غير صالحة",
+        "تفترض ماء عذب في المسام (ρfl = 1.00)؛ الماء المالح (1.05–1.10) والهيدروكربونات تغيّر ρfl",
+        "لا تصحيح لضغط التحدم أو انحراف البئر أو أحجام الشعيرات المتبقية",
+        "القيم السلبية تُعلن كما هي (ضجيج قياس أو افتراض مصفوفة خاطئ) ولا تُقصّ بصمت"
+      ]
+    }
+  ]
+}

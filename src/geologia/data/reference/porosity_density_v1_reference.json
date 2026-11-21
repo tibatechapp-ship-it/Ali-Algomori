@@ -1,0 +1,69 @@
+{
+  "engine_id": "porosity_density_v1",
+  "reference_version": "1.0.0",
+  "formula": "phi_D = (rho_ma - rho_b) / (rho_ma - rho_fl)",
+  "input": {
+    "file": "tests/data/golden_las_valid.las",
+    "sha256": "c0c9e1bf095f71ce610ffc5408d03b0eee5120d7b0fc01573b280fa85da8188f",
+    "curve_used": "RHOB",
+    "unit": "g/cm3"
+  },
+  "params": {
+    "rho_ma_gcm3": 2.65,
+    "rho_fl_gcm3": 1.0,
+    "sigma_rhob_gcm3": 0.015,
+    "matrix": "sandstone",
+    "fluid": "fresh_water"
+  },
+  "expected": {
+    "results": [
+      {
+        "depth_m": 100.0,
+        "porosity_vv": 0.0,
+        "porosity_pct": 0.0,
+        "flag": null
+      },
+      {
+        "depth_m": 101.0,
+        "porosity_vv": 0.006060606060606061,
+        "porosity_pct": 0.6060606060606061,
+        "flag": null
+      },
+      {
+        "depth_m": 102.0,
+        "porosity_vv": 0.012121212121212121,
+        "porosity_pct": 1.2121212121212122,
+        "flag": null
+      },
+      {
+        "depth_m": 103.0,
+        "porosity_vv": 0.0030303030303030303,
+        "porosity_pct": 0.30303030303030304,
+        "flag": null
+      },
+      {
+        "depth_m": 104.0,
+        "porosity_vv": -0.0030303030303030303,
+        "porosity_pct": -0.30303030303030304,
+        "flag": "NEGATIVE_POROSITY"
+      },
+      {
+        "depth_m": 105.0,
+        "porosity_vv": -0.006060606060606061,
+        "porosity_pct": -0.6060606060606061,
+        "flag": "NEGATIVE_POROSITY"
+      }
+    ],
+    "sigma_phi_vv": 0.00909090909090909,
+    "negative_porosity_count": 2
+  },
+  "tolerance": 1e-09,
+  "provenance": {
+    "computed_by": "scripts/gen_reference_porosity.py using fractions.Fraction (exact rational arithmetic) on hand-parsed LAS rows - independent of the engine's float implementation",
+    "citations": [
+      "Asquith, G.B., Krygowski, D. (2004). Basic Well Log Analysis, 2nd ed. AAPG Methods in Exploration 16 - density porosity equation.",
+      "Rider, M., Kennedy, M. (2011). The Geological Interpretation of Well Logs, 3rd ed. - density log, grain/fluid density defaults."
+    ],
+    "note_ar": "القيم المرجعية مثبتة من الصيغة والمدخلات الذهبية بجبر نسبي دقيق؛ أي انحراف بين المحرك والمرجع يتجاوز السماحية يفشل الاعتماد فوراً."
+  }
+}

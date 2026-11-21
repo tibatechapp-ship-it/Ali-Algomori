@@ -3,12 +3,13 @@
 **Geoscience Intelligence Platform** · منصة ذكاء جيولوجي مفتوحة المصدر — عربي / English
 يقودها الوكيل الرئيسي **«المهندس الجمهوري»** (Chief Geoscience Agent).
 
-> **الحالة الحالية: مرحلة التأسيس 0.3.0**
-> لا يوجد أي محرك علمي مثبّت أو مدمج بعد، والتنفيذ بنيوياً مستحيل قبل بوابة `certified`.
-> ما يعمل الآن: نواة API + سجل محركات للقراءة + مخطّط حتمي (9 مجالات) + **طبقة معرفة
-> استرجاعية بلا هلوسة** (كتالوج بذرة + قاعدة 30 محرك + استشهاد إلزامي أو «ليس في المكتبة»)
-> + **طبقة تحقق بيانات** (بصمات ومدقق LAS/GeoJSON/CSV/TIFF بنتائج مرجعية) + **سجل مهام
-> ببوابات إلزامية وعزل** — وفق [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md).
+> **الحالة الحالية: المرحلة 0.4.0 — البوابة 3 مفتوحة بأول محرك موثق معتمد**
+> لا يوجد أي محرك طرف ثالث مثبت أو مدمج بعد، واعتماده مرفوض في الكود حتى دورة حياة كاملة.
+> ما يعمل الآن: نواة API + سجل محركات (عائلتان) + مخطّط حتمي (9 مجالات) + **طبقة معرفة
+> استرجاعية بلا هلوسة** + **طبقة تحقق بيانات** (بصمات + مدقق LAS/GeoJSON/CSV/TIFF بنيوي)
+> + **سجل مهام ببوابات إلزامية وعزل** + **مسار اعتماد `certified` بأول محرك علمي
+> أول-الطرف (`porosity_density_v1`) بمرجع مثبت وتقرير تنفيذ بالأدلة وحدود عدم يقين** —
+> وفق [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md).
 
 ## القواعد العلمية الملزمة
 
@@ -32,7 +33,11 @@ geologia engines --domain geophysics
 geologia knowledge search "من بدأ علم الجيولوجيا في التاريخ؟"
 geologia verify سجل_البئر.las --type las
 geologia dataset add "سجل بئر" سجل_البئر.las --dtype las
-geologia task create "نمذجة حوض صنعاء" gempy ds-ab12cd34ef56
+geologia task create "مسامية بئر صنعاء" porosity_density_v1 ds-ab12cd34ef56 --param rho_ma_gcm3=2.65
+geologia certify porosity_density_v1    # بوابة 3: مرجع مثبت + بصمة المدخل
+geologia task go task-... inputs_validated && geologia task go task-... ready
+geologia task execute task-...          # كشف العبث لحظة التنفيذ + تقرير الأدلة
+geologia task report task-...           # المدخلات + الاستشهادات + ±1σ + حدود الصلاحية
 geologia serve --port 8000
 ```
 
@@ -52,17 +57,20 @@ pytest -q
 
 | Method | Path | الوظيفة |
 | ------ | ---- | ------- |
-| GET | `/health` | حالة الخدمة + عدد المحركات المدمجة (حاليًا 0) |
-| GET | `/api/v1/engines` | سجل المحركات (فلترة اختيارية `?domain=`) |
+| GET | `/health` | حالة الخدمة + عدد المحركات المعتمدة فعلاً (ديناميكي) |
+| GET | `/api/v1/engines` | سجل المحركات: 30 طرفاً ثالثاً + الأولى-الطرف (`?domain=` للفلترة) |
 | GET | `/api/v1/engines/{id}` | بطاقة محرك واحدة |
+| POST | `/api/v1/engines/{id}/certify` | **بوابة 3**: إعادة الاختبار المرجعي المثبت — 409 لرفض الطرف الثالث وعبث المرجع |
 | GET | `/api/v1/domains` | المجالات التحليلية التسعة بعدد محركاتها ومدخلاتها |
 | POST | `/api/v1/plans` | خطة تحليل حتمية؛ **422 مع قائمة المجالات المدعومة** إن لم يُعرف مجال |
 | GET | `/api/v1/knowledge/stats` · `/catalog` | حجم المكتبة وكتالوجها بحالات ثقة مدخلاتها |
 | POST | `/api/v1/knowledge/query` | **استرجاع فقط**: مقطع مخزن باستشهاده أو «ليس في المكتبة» |
 | POST | `/api/v1/datasets` · `GET /api/v1/datasets` | تسجيل مجموعة بيانات حقيقية بهوية sha256 |
-| POST | `/api/v1/datasets/{id}/validate` · `/verify-checksum` | تحقق صيغة + تحقق بصمة ضد العبث |
+| POST | `/api/v1/datasets/{id}/validate` · `/verify-checksum` | تحقق صيغة (TIFF بنيوي) + تحقق بصمة ضد العبث |
 | POST | `/api/v1/tasks` · `GET /api/v1/tasks` | سجل مهام بمواصفة عزل |
 | POST | `/api/v1/tasks/{id}/transition` | انتقال محكوم بالبوابات؛ التنفيذ **409** قبل بوابة `certified` |
+| POST | `/api/v1/tasks/{id}/execute` | تنفيذ المحرك المعتمد فقط + كشف عبث لحظة التنفيذ |
+| GET | `/api/v1/tasks/{id}/report` | **بوابة 4**: تقرير الأدلة (مدخلات، استشهادات، ±1σ، حدود صلاحية) |
 
 مثال:
 
@@ -74,17 +82,20 @@ curl -X POST localhost:8000/api/v1/plans -H "Content-Type: application/json" -d 
 ## البنية
 
 ```text
-src/geologia/        # النواة: API + سجل المحركات + المخطّط + التطبيع العربي + CLI
+src/geologia/        # النواة: API + سجل المحركات (عائلتان) + المخطّط + التطبيع العربي + CLI
+  engines/           # المحركات الأولى-الطرف: حتمية، بلا اعتماديات، قابلة للاعتماد
   knowledge/         # طبقة المعرفة: كتالوج بذرة + فهرس TF-IDF + استرجاع باستشهاد
-  data_layer/        # سجل بيانات (بصمات، مدققون) + سجل مهام ببوابات إلزامية
-docs/                # المعمارية، سياسة الدمج، معيار القبول، خارطة الطريق، ADR-0001..0003
-tests/               # 77 اختباراً + مدخلات مرجعية ذهبية في tests/data/
+  data_layer/        # سجل بيانات (بصمات، مدققون) + اعتماد + منفذ مقفول بالأدلة + سجل مهام
+  data/reference/    # المراجع المثبتة بجبر نسبي دقيق (نتائج ذهبية ببصماتها)
+docs/                # المعمارية، سياسة الدمج، معيار القبول، خارطة الطريق، ADR-0001..0004
+tests/               # 106 اختباراً (منها 11 حية على uvicorn) + ملفات ذهبية في tests/data/
+scripts/             # مولدات المراجع الذهبية (بلا اعتماديات)
 .github/workflows/   # CI: فحص + اختبارات على مسارين (أحدث نسخ / مسار Termux)
 ```
 
 ## سجل التغييرات
 
-راجع [CHANGELOG.md](CHANGELOG.md) — آخر إصدار 0.3.0 (2026-11-21).
+راجع [CHANGELOG.md](CHANGELOG.md) — آخر إصدار 0.4.0 (2026-11-21).
 
 ## بخصوص «ذاكرة كل الكتب» — بصراحة
 
@@ -98,7 +109,7 @@ tests/               # 77 اختباراً + مدخلات مرجعية ذهبي�
 
 - [المعمارية](docs/ARCHITECTURE.md) · [سياسة دمج المحركات](docs/INTEGRATION_POLICY.md)
 - [خارطة الطريق](docs/ROADMAP.md) · [حوكمة البيانات](docs/DATA_GOVERNANCE.md)
-- [الأمان](SECURITY.md) · [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md) · [ADR-0001](docs/adr/0001-chief-agent-isolated-engines.md) · [ADR-0002](docs/adr/0002-retrieval-only-knowledge.md) · [ADR-0003](docs/adr/0003-task-ledger-mandatory-gates.md)
+- [الأمان](SECURITY.md) · [معيار القبول الملزم](docs/ACCEPTANCE_STANDARD.md) · [ADR-0001](docs/adr/0001-chief-agent-isolated-engines.md) · [ADR-0002](docs/adr/0002-retrieval-only-knowledge.md) · [ADR-0003](docs/adr/0003-task-ledger-mandatory-gates.md) · [ADR-0004](docs/adr/0004-first-certified-engine.md)
 
 ## الترخيص
 

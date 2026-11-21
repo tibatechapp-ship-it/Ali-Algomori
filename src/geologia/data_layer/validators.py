@@ -6,8 +6,9 @@ from __future__ import annotations
 
 import csv
 import json
+import struct
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 _NULL_SENTINELS = {"", "null", "nan", "na", "-", "none"}
 
@@ -16,8 +17,14 @@ F = {
     "GEN_FILE_MISSING": "error",
     "GEN_EMPTY_FILE": "error",
     "GEN_UNKNOWN_TYPE": "warning",
-    "TIFF_MAGIC_OK": "info",
-    "TIFF_MAGIC_UNKNOWN": "warning",
+    "TIFF_MAGIC_UNKNOWN": "error",
+    "TIFF_NO_IFD": "error",
+    "TIFF_MISSING_TAG": "error",
+    "TIFF_SIZE_MISMATCH": "error",
+    "TIFF_TRUNCATED": "error",
+    "TIFF_UNSUPPORTED_COMPRESSION": "warning",
+    "TIFF_GEO_TAGS": "info",
+    "TIFF_OK": "info",
     "LAS_NO_VERSION": "error",
     "LAS_VERSION_UNSUPPORTED": "warning",
     "LAS_NO_WELL_HEADER": "error",
@@ -265,6 +272,127 @@ def _check_csv(path: Path, findings: List[dict]) -> None:
                              f"numeric cols: {sorted(numeric_cols)}"))
 
 
+# --- TIFF structure validator (byte-level, zero dependencies) -------------
+_TIFF_TYPE_SIZES = {1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8}
+_TIFF_REQUIRED_TAGS = {
+    256: "ImageWidth", 257: "ImageLength", 258: "BitsPerSample",
+    259: "Compression", 262: "Photometric", 273: "StripOffsets",
+    277: "SamplesPerPixel", 278: "RowsPerStrip", 279: "StripByteCounts",
+}
+_TAG_PIXEL_SCALE = 33550   # GeoTIFF ModelPixelScaleTag
+_TAG_TIEPOINT = 33922      # GeoTIFF ModelTiepointTag
+
+
+def _parse_tiff_ifd(fh) -> Tuple[Optional[Dict[int, tuple]], Optional[str]]:
+    """Parse header + first IFD. Returns ({tag: values}, None) or (None, code)."""
+    header = fh.read(8)
+    if len(header) < 8:
+        return None, "TIFF_NO_IFD"
+    order = header[:2]
+    if order == b"II":
+        e = "<"
+    elif order == b"MM":
+        e = ">"
+    else:
+        return None, "TIFF_MAGIC_UNKNOWN"
+    magic = struct.unpack(e + "H", header[2:4])[0]
+    if magic != 42:
+        return None, "TIFF_MAGIC_UNKNOWN"
+    ifd_off = struct.unpack(e + "I", header[4:8])[0]
+    file_size = fh.seek(0, 2)
+    if ifd_off < 8 or ifd_off >= file_size:
+        return None, "TIFF_NO_IFD"
+    fh.seek(ifd_off)
+    raw = fh.read(2)
+    if len(raw) < 2:
+        return None, "TIFF_NO_IFD"
+    n_entries = struct.unpack(e + "H", raw)[0]
+    entries: Dict[int, tuple] = {}
+    base = fh.tell()  # absolute position of the first 12-byte entry record
+    for i in range(n_entries):
+        fh.seek(base + 12 * i)  # absolute: out-of-line value reads move us around
+        rec = fh.read(12)
+        if len(rec) < 12:
+            return None, "TIFF_NO_IFD"
+        tag, typ, count = struct.unpack(e + "HHI", rec[:8])
+        unit = _TIFF_TYPE_SIZES.get(typ)
+        if unit is None:
+            continue
+        size = unit * count
+        if size <= 4:
+            data = rec[8:8 + size]
+        else:
+            off = struct.unpack(e + "I", rec[8:12])[0]
+            if off + size > file_size:
+                return None, "TIFF_TRUNCATED"
+            fh.seek(off)
+            data = fh.read(size)
+            if len(data) < size:
+                return None, "TIFF_TRUNCATED"
+        if typ == 3:
+            values = struct.unpack(e + "H" * count, data)
+        elif typ == 4:
+            values = struct.unpack(e + "I" * count, data)
+        elif typ == 5:
+            values = tuple(
+                (num, den) for num, den in
+                zip(struct.unpack(e + "I" * (2 * count), data)[::2],
+                    struct.unpack(e + "I" * (2 * count), data)[1::2]))
+        else:
+            values = ()
+        entries[tag] = values
+    return entries, None
+
+
+def _check_tiff(path: Path, findings: List[dict]) -> None:
+    file_size = path.stat().st_size
+    with path.open("rb") as fh:
+        ifd, err = _parse_tiff_ifd(fh)
+    if ifd is None:
+        findings.append(_finding(err, "not a readable TIFF (magic/IFD parse failed)"))
+        return
+
+    def num(tag: int) -> Optional[int]:
+        v = ifd.get(tag)
+        return v[0] if v else None
+
+    missing = [name for tag, name in _TIFF_REQUIRED_TAGS.items() if tag not in ifd]
+    if missing:
+        findings.append(_finding("TIFF_MISSING_TAG",
+                                 f"missing required tags: {', '.join(missing)}"))
+    w, h = num(256), num(257)
+    bits, comp = num(258), num(259)
+    spp = num(277)
+    offsets = ifd.get(273, ())
+    counts = ifd.get(279, ())
+    if comp not in (None, 1):
+        findings.append(_finding(
+            "TIFF_UNSUPPORTED_COMPRESSION",
+            f"compression {comp}: structural check only, raster decode deferred"))
+    if comp == 1 and all(v is not None for v in (w, h, bits, spp)):
+        expected = w * h * spp * bits // 8
+        if sum(counts) != expected:
+            findings.append(_finding(
+                "TIFF_SIZE_MISMATCH",
+                f"strip byte counts sum {sum(counts)} != {w}x{h}x{spp}x{bits}/8 = {expected}"))
+    for off, cnt in zip(offsets, counts):
+        if off + cnt > file_size:
+            findings.append(_finding(
+                "TIFF_TRUNCATED",
+                f"strip at {off}+{cnt} exceeds file size {file_size}"))
+            break
+    if _TAG_PIXEL_SCALE in ifd and _TAG_TIEPOINT in ifd:
+        tp = ifd[_TAG_TIEPOINT]
+        lon = tp[3][0] / tp[3][1] if len(tp) > 3 else None
+        lat = tp[4][0] / tp[4][1] if len(tp) > 4 else None
+        findings.append(_finding(
+            "TIFF_GEO_TAGS",
+            f"georeferenced raster (pixel scale + tiepoint), origin ~({lon}, {lat})"))
+    findings.append(_finding("TIFF_OK",
+                             f"{w}x{h}, {bits}-bit, compression {comp}, "
+                             f"{len(ifd)} tags parsed"))
+
+
 def validate_file(path: str, dtype: str = "auto") -> dict:
     """Validate a data file. Returns a stable report:
     {status: pass|fail|needs_review, findings: [{code, severity, message}]}."""
@@ -285,14 +413,7 @@ def validate_file(path: str, dtype: str = "auto") -> dict:
     elif dtype == "csv":
         _check_csv(p, findings)
     elif dtype == "tiff":
-        with p.open("rb") as fh:
-            head = fh.read(4)
-        if head[:2] in (b"II", b"MM"):
-            findings.append(_finding("TIFF_MAGIC_OK",
-                                     "TIFF container magic detected (byte-level only)"))
-        else:
-            findings.append(_finding("TIFF_MAGIC_UNKNOWN",
-                                     "no TIFF magic; deferring full raster check"))
+        _check_tiff(p, findings)
     else:
         return {"status": "needs_review", "file": str(p), "dtype": dtype,
                 "findings": [_finding("GEN_UNKNOWN_TYPE", f"no validator for type {dtype!r}")]}

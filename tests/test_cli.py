@@ -47,7 +47,10 @@ def test_cli_domains(capsys):
 
 def test_cli_engines_all_and_filtered(capsys):
     assert main(["engines"]) == 0
-    assert _out_json(capsys)["count"] == 30
+    body = _out_json(capsys)
+    # 30 third-party cards + first-party certified-track engines
+    assert body["count"] == 31
+    assert sum(1 for e in body["engines"] if e["family"] == "third_party") == 30
     assert main(["engines", "--domain", "geophysics"]) == 0
     body = _out_json(capsys)
     assert body["count"] == 3

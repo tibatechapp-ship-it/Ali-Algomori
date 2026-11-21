@@ -1,7 +1,8 @@
-# GEOLOGIA foundation API.
 # Honest nucleus: health + read-only engine registry + deterministic planner
-# + retrieval-only knowledge base + dataset verification + gated task ledger.
-# No scientific engine is installed or executed in this phase.
+# + retrieval-only knowledge base + dataset verification + gated task ledger
+# + first-party certified engine execution with evidence reports.
+import json
+from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -10,9 +11,13 @@ from pydantic import BaseModel, Field
 from geologia import __version__
 from geologia.data_layer import records as ds
 from geologia.data_layer import tasks as tl
+from geologia.data_layer.certification import (
+    CertificationRefused,
+    certify_engine,
+)
 from geologia.knowledge.retrieval import get_kb
 from geologia.planner import UnknownDomainError, build_plan, list_planner_domains
-from geologia.registry import get_engine, list_engines
+from geologia.registry import certified_engines, get_engine, list_engines
 
 app = FastAPI(
     title="GEOLOGIA API",
@@ -70,7 +75,7 @@ def health() -> dict:
         "status": "ok",
         "service": "geologia",
         "version": __version__,
-        "engines_integrated": 0,
+        "engines_integrated": len(certified_engines()),
         "acceptance_standard": "digest_10_acceptance_standard.md",
     }
 
@@ -87,6 +92,22 @@ def engine_detail(engine_id: str) -> dict:
     if card is None:
         raise HTTPException(status_code=404, detail="engine_id not found in registry")
     return card
+
+
+@app.post("/api/v1/engines/{engine_id}/certify")
+def certify(engine_id: str) -> dict:
+    """Gate 3: re-run the pinned reference test, record the verdict.
+    Third-party engines are refused (integration policy)."""
+    try:
+        return certify_engine(engine_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except CertificationRefused as exc:
+        raise HTTPException(status_code=409, detail={
+            "error": "certification_refused",
+            "reasons": exc.reasons,
+            "message": str(exc),
+        })
 
 
 @app.get("/api/v1/domains")
@@ -246,3 +267,33 @@ def task_transition(task_id: str, body: TransitionIn) -> dict:
             "gate": exc.gate,
             "message": exc.message,
         })
+
+
+@app.post("/api/v1/tasks/{task_id}/execute")
+def execute_task(task_id: str) -> dict:
+    """Run the task's certified engine (gates enforced; 409 if refused)."""
+    try:
+        return tl.transition(task_id, "executed", reason="api execute")
+    except KeyError:
+        raise HTTPException(status_code=404, detail="task_id not found")
+    except tl.TaskGateError as exc:
+        raise HTTPException(status_code=409, detail={
+            "error": "gate_refused",
+            "gate": exc.gate,
+            "message": exc.message,
+        })
+
+
+@app.get("/api/v1/tasks/{task_id}/report")
+def task_report(task_id: str) -> dict:
+    """Gate 4: the evidence report of an executed task."""
+    task = tl.get_task(task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="task_id not found")
+    path = task.get("execution_report_path")
+    if not path or not Path(path).exists():
+        raise HTTPException(status_code=404, detail={
+            "error": "no_execution_report",
+            "message": "هذه المهمة لم تُنفذ بعد — لا تقرير أدلة",
+        })
+    return json.loads(Path(path).read_text(encoding="utf-8"))
