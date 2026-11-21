@@ -8,3 +8,8 @@ dist/
 build/
 .env
 bootstrap.py
+
+# session artifacts (never tracked)
+tool-results/
+# release zips ship outside the tracked tree
+download/*.zip
