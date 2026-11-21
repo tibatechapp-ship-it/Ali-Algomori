@@ -178,6 +178,7 @@ def test_geotiff_nodata_read():
     assert r["data"]["nodata"] == -9999.0
 
 
+@req_tifffile
 def test_geotiff_without_geokeys_reports_missing_not_guesses(tmp_path):
     import tifffile
     import numpy as np
@@ -223,6 +224,7 @@ def test_gpkg_declared_crs_mismatch_is_an_error():
     assert "CRS_READER_MISMATCH" in codes(r)
 
 
+@req_pyproj
 def test_gpkg_srs_definition_mismatch_detected(tmp_path):
     """organization says EPSG:X but the WKT parses as EPSG:Y -> error."""
     import sqlite3
