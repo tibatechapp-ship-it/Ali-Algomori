@@ -1,0 +1,108 @@
+{
+  "schema": "geologia-reference-geoid-models/1",
+  "frozen": "2026-11-22",
+  "frozen_with": {
+    "pyproj": "3.8.0",
+    "verification": "EPSG codes, types, units and datum pairings re-proved from the EPSG database shipped with PROJ (proj.db queried via sqlite3, 2026-11-22)"
+  },
+  "mirror_note": "هذه نسخة مرآة محلية لمحتوى PR #7 (الفرع phase-6-browser-e2e-20261121). عند دمج PR #7 في GitHub، إن اختلفت نسخة الدمج عن هذه النسخة فنسخة الدمج هي المرجع — التعريف الرسمي للمصادر لا يتفرع.",
+  "note": "Registry of geoid models that GEOLOGIA recognizes for vertical reference claims, with the acceptance gates a grid must pass BEFORE any vertical-transformation claim can exist. As of this version: NO grid file is embedded, NO independent verification values exist, and the vertical transformation is NOT implemented. Answering with a vertical height or a datum shift without a loaded, gate-passing grid must be a refusal, never an inference.",
+  "models": [
+    {
+      "id": "egm96",
+      "name": "EGM96",
+      "full_name": "Earth Gravitational Model 1996 (joint NASA GSFC / NIMA)",
+      "crs_epsg": 5773,
+      "crs_name_verified": "EGM96 height",
+      "crs_type_verified": "Vertical CRS",
+      "axis_verified": "Gravity-related height, metre",
+      "datum_epsg": 5171,
+      "datum_name_verified": "EGM96 geoid",
+      "datum_note": "the datum ENTITY (EPSG:5171) is deliberately distinguished from the vertical CRS (EPSG:5773) — a model datum and a coordinate reference system are not the same object",
+      "grid_resolution_arcmin": 15,
+      "resolution_source": "model documentation (Lemoine et al. 1998)",
+      "published_reference": "Lemoine, F.G., et al. (1998), The Development of the Joint NASA GSFC and the National Imagery and Mapping Agency (NIMA) Geopotential Model EGM96, NASA/TP-1998-206861",
+      "primary_source": "nga_geograv",
+      "distribution_source": "osgeo_proj_data",
+      "grid_embedded": false,
+      "grid_file_sha256": null,
+      "grid_license": null,
+      "tide_system": null,
+      "tide_system_note": "must be recorded from the official model documentation at intake; not claimed here",
+      "independent_verification_values": [],
+      "status": "documented_not_embedded"
+    },
+    {
+      "id": "egm2008",
+      "name": "EGM2008",
+      "full_name": "Earth Gravitational Model 2008 (NGA)",
+      "crs_epsg": 3855,
+      "crs_name_verified": "EGM2008 height",
+      "crs_type_verified": "Vertical CRS",
+      "axis_verified": "Gravity-related height, metre",
+      "datum_epsg": 1027,
+      "datum_name_verified": "EGM2008 geoid",
+      "datum_note": "verified from proj.db on 2026-11-22: the EGM2008 geoid datum entity is EPSG:1027 (not 5171, which belongs to EGM96)",
+      "grid_resolution_arcmin": 2.5,
+      "resolution_source": "model documentation (Pavlis et al. 2012)",
+      "published_reference": "Pavlis, N.K., Holmes, S.A., Kenyon, S.C., Factor, J.K. (2012), The development and evaluation of the Earth Gravitational Model 2008 (EGM2008), Journal of Geodesy, 86(3), 203-234",
+      "primary_source": "nga_geograv",
+      "distribution_source": "osgeo_proj_data",
+      "grid_embedded": false,
+      "grid_file_sha256": null,
+      "grid_license": null,
+      "tide_system": null,
+      "tide_system_note": "must be recorded from the official model documentation at intake; not claimed here",
+      "independent_verification_values": [],
+      "status": "documented_not_embedded"
+    }
+  ],
+  "acceptance_gates": [
+    {
+      "gate": "grid_file_sha256",
+      "requirement": "SHA-256 of the exact grid file taken at intake, recorded with the fetch source; content-addressed, immutable",
+      "current_status": "not_recorded — no grid fetched yet"
+    },
+    {
+      "gate": "grid_license",
+      "requirement": "the license of the exact file as listed by its distribution channel, checked against the license-purpose matrix before any use beyond indexing",
+      "current_status": "not_recorded"
+    },
+    {
+      "gate": "tide_system",
+      "requirement": "the tide system of the model as documented by its primary authority (e.g. tide-free / mean-tide), recorded verbatim with page reference",
+      "current_status": "not_recorded"
+    },
+    {
+      "gate": "grid_geometry",
+      "requirement": "grid coordinates documented: coverage extent, node spacing, origin and orientation, units",
+      "current_status": "not_recorded"
+    },
+    {
+      "gate": "interpolation_method",
+      "requirement": "the interpolation method the implementation will use, declared explicitly — the same grid with a different interpolator is a different claim",
+      "current_status": "not_recorded"
+    },
+    {
+      "gate": "crs_pair",
+      "requirement": "the horizontal and vertical CRS pair the transformation serves, per ISO 19111; the registry entries above are the only vertical CRSs this model may claim",
+      "current_status": "declared in registry (5773 for EGM96, 3855 for EGM2008) — binding only after all other gates pass"
+    },
+    {
+      "gate": "validity_domain",
+      "requirement": "the region and conditions where the transformation is valid; outside the domain the implementation must refuse, not extrapolate",
+      "current_status": "not_recorded"
+    },
+    {
+      "gate": "independent_verification_values",
+      "requirement": "control values for grid nodes and internal interpolation, derived independently of the transformation library that will use the grid (the same independence doctrine as the EPSG:3857 equations check in ADR-0007)",
+      "current_status": "not_recorded — none exist yet"
+    }
+  ],
+  "implementation_status": {
+    "vertical_transformation": "not_implemented",
+    "rule": "no code path may return a vertical height or a datum shift derived from these models until every acceptance gate above is recorded and its test passes",
+    "agent_rule": "any agent answer implying a vertical transformation without a loaded, gate-passing grid is a refusal (honesty doctrine 1: the system does not invent results)"
+  },
+  "sources_registry": "reference_sources.json (same directory) — authority hierarchy and intake policy live there"
+}

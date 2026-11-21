@@ -1,0 +1,57 @@
+{
+  "schema": "geologia-reference-sources/1",
+  "frozen": "2026-11-22",
+  "frozen_with": {
+    "pyproj": "3.8.0",
+    "web_check": "build-environment fetch, 2026-11-22"
+  },
+  "mirror_note": "هذه نسخة مرآة محلية لمحتوى PR #7 (الفرع phase-6-browser-e2e-20261121). عند دمج PR #7 في GitHub، إن اختلفت نسخة الدمج عن هذه النسخة فنسخة الدمج هي المرجع — التعريف الرسمي للمصادر لا يتفرع.",
+  "note": "Registry of OFFICIAL sources for reference geodetic data (vertical datum grids first, other reference data later). The registry records authority hierarchy and intake policy; it does NOT embed data and does NOT grant trust. Trust is earned at the reception gate (ADR-0007: check_upload then prove_file), never before it — there is no special fetch path for 'trusted' sites.",
+  "authority_hierarchy": {
+    "primary": "the authority that published the model/document itself; its statements define the model",
+    "secondary_distribution": "a distribution channel that republishes/converts the primary's artifacts; it documents formats and licenses but is NOT a replacement for the primary's authority",
+    "literature": "peer-reviewed or agency literature used to document limitations and conventions; it never substitutes for the primary's files"
+  },
+  "sources": [
+    {
+      "id": "nga_geograv",
+      "authority": "primary",
+      "organization": "National Geospatial-Intelligence Agency (NGA), Office of Geodesy and Geophysics",
+      "url": "https://earth-info.nga.mil/",
+      "url_note": "geograv section hosts EGM96/EGM2008 model documentation and grid files",
+      "hosts": ["EGM96 documentation and grids", "EGM2008 documentation and grids"],
+      "languages": ["en"],
+      "last_checked": "2026-11-22",
+      "check_result": "domain confirmed as NGA; page content was not machine-readable from the build environment (HTML conversion failed) — the specific model pages must be re-verified at intake, not assumed",
+      "policy": "grid bytes must be taken from here (or a distribution whose lineage back to here is documented) before any vertical-transformation claim"
+    },
+    {
+      "id": "osgeo_proj_data",
+      "authority": "secondary_distribution",
+      "organization": "OSGeo PROJ-data project",
+      "url": "https://github.com/OSGeo/PROJ-data",
+      "url_note": "repository for PROJ datum grids (PROJ 7+); grids served via cdn.proj.org",
+      "hosts": ["redistributed datum grids incl. vertical (geoid) grids", "per-grid format and license listings"],
+      "languages": ["en"],
+      "last_checked": "2026-11-22",
+      "check_result": "repository confirmed: 'Repository for proj datum grids (for use by PROJ 7 or later)' with horizontal and vertical shift grids; specific EGM grid paths and their per-grid licenses were NOT visible in the page summary and must be confirmed at intake",
+      "policy": "acceptable distribution channel for formats/licensing; lineage to the primary (NGA) must be recorded per grid file"
+    },
+    {
+      "id": "noaa_egm96_evaluation_note",
+      "authority": "literature",
+      "organization": "NOAA (evaluation literature on EGM96)",
+      "url": null,
+      "hosts": ["documented limitation: EGM96 coefficient sets ALONE are insufficient without the model's conventions and realization being documented"],
+      "languages": ["en"],
+      "last_checked": null,
+      "citation_status": "incomplete — bibliographic details must be completed at intake from the source record carried by PR #7; they must NOT be invented here",
+      "policy": "used to justify why coefficient-only answers are refused for vertical claims; not a source of grid bytes"
+    }
+  ],
+  "intake_policy": {
+    "gate": "every byte from every source above goes through the standing reception gate (ADR-0007): check_upload for security, prove_file for structure — no exceptions, no trust shortcuts",
+    "registration": "every verdict, including refusals, enters the tamper-evident provenance log with the fetch source and its license",
+    "hierarchy_rule": "a secondary_distribution entry may document formats and licenses; only the primary's authority defines the model — disagreements resolve toward the primary"
+  }
+}
