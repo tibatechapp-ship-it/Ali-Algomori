@@ -1,0 +1,365 @@
+{
+  "registry_version": "0.1.0",
+  "engines": [
+    {
+      "engine_id": "qgis",
+      "name": "QGIS",
+      "domain": "gis",
+      "capabilities": [
+        "gis_operations"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 2,
+      "role_ar": "منصة GIS شاملة: عمليات وتحليل مكاني عبر Workers معزولين"
+    },
+    {
+      "engine_id": "grass",
+      "name": "GRASS GIS",
+      "domain": "gis",
+      "capabilities": [
+        "spatial_analysis"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 2,
+      "role_ar": "تحليل مكاني ومعالجة raster/vector متقدمة"
+    },
+    {
+      "engine_id": "gmt",
+      "name": "GMT",
+      "domain": "gis",
+      "capabilities": [
+        "scientific_cartography"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 2,
+      "role_ar": "خرائط علمية عالية الجودة"
+    },
+    {
+      "engine_id": "geopandas",
+      "name": "GeoPandas",
+      "domain": "gis",
+      "capabilities": [
+        "vector_analysis"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 2,
+      "role_ar": "تحليل بيانات متجهية داخل خدمات Python"
+    },
+    {
+      "engine_id": "rasterio",
+      "name": "Rasterio",
+      "domain": "gis",
+      "capabilities": [
+        "raster_io"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 2,
+      "role_ar": "قراءة وفحص ملفات Raster مثل GeoTIFF وCOG"
+    },
+    {
+      "engine_id": "gplates",
+      "name": "GPlates",
+      "domain": "gis",
+      "capabilities": [
+        "plate_reconstruction"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 7,
+      "role_ar": "إعادة بناء حركة الصفائح عبر الزمن الجيولوجي"
+    },
+    {
+      "engine_id": "gempy",
+      "name": "GemPy",
+      "domain": "geology3d",
+      "capabilities": [
+        "geological_model_3d"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 4,
+      "role_ar": "نمذجة بنية جيولوجية 3D مع عدم يقين — لا يثبت موارد بذاته"
+    },
+    {
+      "engine_id": "loopstructural",
+      "name": "LoopStructural",
+      "domain": "geology3d",
+      "capabilities": [
+        "structural_modelling"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 4,
+      "role_ar": "نمذجة بنيوية للطيات والفوالق"
+    },
+    {
+      "engine_id": "map2loop",
+      "name": "map2loop",
+      "domain": "geology3d",
+      "capabilities": [
+        "map_preprocessing"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 4,
+      "role_ar": "تجهيز الخرائط الجيولوجية كمدخلات للنمذجة"
+    },
+    {
+      "engine_id": "noddy",
+      "name": "Noddy",
+      "domain": "geology3d",
+      "capabilities": [
+        "educational_modelling"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 4,
+      "role_ar": "نمذجة تعليمية واستكشاف التاريخ البنيوي"
+    },
+    {
+      "engine_id": "curlew",
+      "name": "curlew",
+      "domain": "geology3d",
+      "capabilities": [
+        "neural_field_modelling"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 4,
+      "role_ar": "بحث متقدم: نمذجة جيولوجية بالحقول العصبية"
+    },
+    {
+      "engine_id": "rgm",
+      "name": "RGM",
+      "domain": "geology3d",
+      "capabilities": [
+        "synthetic_models"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 4,
+      "role_ar": "توليد نماذج اصطناعية لأبحاث تعلم الآلة"
+    },
+    {
+      "engine_id": "obspy",
+      "name": "ObsPy",
+      "domain": "seismology",
+      "capabilities": [
+        "waveform_processing"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 6,
+      "role_ar": "قراءة ومعالجة الموجات الزلزالية"
+    },
+    {
+      "engine_id": "simpeg",
+      "name": "SimPEG",
+      "domain": "geophysics",
+      "capabilities": [
+        "geophysical_inversion"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 6,
+      "role_ar": "نمذجة وعكس جيوفيزيائي"
+    },
+    {
+      "engine_id": "pygimli",
+      "name": "PyGIMLi",
+      "domain": "geophysics",
+      "capabilities": [
+        "geophysical_inversion"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 6,
+      "role_ar": "عكس جيوفيزيائي وتوموغرافيا"
+    },
+    {
+      "engine_id": "seiscomp",
+      "name": "SeisComP",
+      "domain": "seismology",
+      "capabilities": [
+        "seismic_network_ops"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 6,
+      "role_ar": "إدارة شبكة رصد زلزالي — مرحلة متأخرة"
+    },
+    {
+      "engine_id": "openquake",
+      "name": "OpenQuake",
+      "domain": "seismology",
+      "capabilities": [
+        "hazard_assessment"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 6,
+      "role_ar": "حساب الخطر الزلزالي الاحتمالي"
+    },
+    {
+      "engine_id": "madagascar",
+      "name": "Madagascar",
+      "domain": "geophysics",
+      "capabilities": [
+        "seismic_processing"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 6,
+      "role_ar": "معالجة بيانات زلزالية بحثية"
+    },
+    {
+      "engine_id": "pyrocko",
+      "name": "Pyrocko",
+      "domain": "seismology",
+      "capabilities": [
+        "seismology_tools"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 6,
+      "role_ar": "أدوات زلزالية متخصصة"
+    },
+    {
+      "engine_id": "modflow6",
+      "name": "MODFLOW 6",
+      "domain": "hydrology",
+      "capabilities": [
+        "groundwater_flow"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 5,
+      "role_ar": "محاكاة تدفق المياه الجوفية — يتطلب بيانات هيدرولوجية ومعايرة"
+    },
+    {
+      "engine_id": "landlab",
+      "name": "Landlab",
+      "domain": "hydrology",
+      "capabilities": [
+        "surface_processes"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 5,
+      "role_ar": "نمذجة عمليات سطح الأرض والهيدرولوجيا"
+    },
+    {
+      "engine_id": "pastas",
+      "name": "Pastas",
+      "domain": "hydrology",
+      "capabilities": [
+        "well_timeseries"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 5,
+      "role_ar": "تحليل سلاسل مناسيب الآبار الزمنية"
+    },
+    {
+      "engine_id": "geochemistry-pi",
+      "name": "Geochemistry π",
+      "domain": "geochemistry",
+      "capabilities": [
+        "geochemistry_ml"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 7,
+      "role_ar": "تحليل جيوكيميائي وتصنيف الصخور بتعلم الآلة"
+    },
+    {
+      "engine_id": "geopytool",
+      "name": "GeoPyTool",
+      "domain": "geochemistry",
+      "capabilities": [
+        "geochemistry_analysis"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 7,
+      "role_ar": "أدوات جيوكيميائية وتصنيف صخري"
+    },
+    {
+      "engine_id": "eis-toolkit",
+      "name": "EIS Toolkit",
+      "domain": "exploration",
+      "capabilities": [
+        "mineral_prospectivity"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 7,
+      "role_ar": "خرائط قابلية الاستكشاف المعدني — لا يؤكد وجود الذهب"
+    },
+    {
+      "engine_id": "lasio",
+      "name": "lasio",
+      "domain": "well_logs",
+      "capabilities": [
+        "well_log_io"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 5,
+      "role_ar": "قراءة سجلات الآبار بصيغة LAS"
+    },
+    {
+      "engine_id": "striplog",
+      "name": "striplog",
+      "domain": "well_logs",
+      "capabilities": [
+        "stratigraphy"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 5,
+      "role_ar": "تمثيل طبقات وسجلات الآبار"
+    },
+    {
+      "engine_id": "opendronemap",
+      "name": "OpenDroneMap",
+      "domain": "remote_sensing",
+      "capabilities": [
+        "photogrammetry"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 7,
+      "role_ar": "فوتوغرامتريا: تحويل صور الدرون إلى منتجات"
+    },
+    {
+      "engine_id": "gisclaw",
+      "name": "GISclaw",
+      "domain": "agent_reference",
+      "capabilities": [
+        "gis_agent_reference"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 3,
+      "role_ar": "مرجع معماري لوكيل GIS — أرقام benchmark خاصة بنطاقها"
+    },
+    {
+      "engine_id": "bedrock-ge",
+      "name": "Bedrock-ge",
+      "domain": "engineering",
+      "capabilities": [
+        "geotechnical_integration"
+      ],
+      "status": "planned",
+      "license_status": "unverified",
+      "integration_phase": 7,
+      "role_ar": "تكامل هندسي جيولوجي بعد التحقق من واجهاته"
+    }
+  ]
+}
