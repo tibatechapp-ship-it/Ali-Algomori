@@ -13,10 +13,20 @@ from geologia.data_layer.tasks import (
     list_tasks,
     transition,
 )
+from geologia.data_layer.reception import (
+    check_upload,
+    sanitize_filename,
+    scan_archive,
+    scan_tiff_metadata,
+    sniff_content,
+    strip_tiff_auxiliary_tags,
+)
 from geologia.data_layer.validators import validate_file
 
 __all__ = [
     "register_dataset", "list_datasets", "get_dataset", "validate_dataset",
     "verify_checksum", "validate_file", "create_task", "list_tasks",
     "get_task", "transition", "TaskGateError",
+    "check_upload", "sanitize_filename", "scan_archive",
+    "scan_tiff_metadata", "sniff_content", "strip_tiff_auxiliary_tags",
 ]

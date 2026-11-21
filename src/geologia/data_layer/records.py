@@ -126,7 +126,9 @@ def validate_dataset(ds_id: str) -> dict:
         raise KeyError(ds_id)
     if not Path(ds["path"]).exists():
         raise FileNotFoundError(f"dataset file missing: {ds['path']}")
-    report = validate_file(ds["path"], ds.get("dtype", "auto"))
+    report = validate_file(ds["path"], ds.get("dtype", "auto"),
+                           declared_crs=ds.get("declared_crs"),
+                           declared_units=ds.get("declared_units"))
     ds["validation"] = {
         "status": report["status"],
         "findings": report["findings"],

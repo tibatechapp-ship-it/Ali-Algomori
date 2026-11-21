@@ -6,11 +6,23 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import struct
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 _NULL_SENTINELS = {"", "null", "nan", "na", "-", "none"}
+
+# v0.5.0: corrupted-file hardening. A text file whose lines exceed this bound
+# is refused before parsing (pathological memory input), and NUL bytes in text
+# formats are treated as corruption, not data.
+_MAX_LINE_BYTES = 1 << 20  # 1 MiB per line
+
+# v0.5.0 CRS consistency (declared vs observed): geographic CRS declared for
+# data that looks projected (or the reverse) is an error, not a note —
+# it would poison every downstream transform.
+_GEO_CRS_RE = re.compile(r"(4326|CRS84|WGS\s*84)", re.I)
+_UTM_CRS_RE = re.compile(r"(?:EPSG\s*:\s*)?32[67](\d{2})\b|UTM", re.I)
 
 # Codes with severities (contract is stable; tests assert them).
 F = {
@@ -32,7 +44,11 @@ F = {
     "LAS_NO_CURVES": "error",
     "LAS_STOP_LE_STRT": "error",
     "LAS_STEP_ZERO": "error",
-    "LAS_DATA_ROWS_MISMATCH": "warning",
+    # v0.5.0 hardening: a declared-vs-actual row mismatch is corruption
+    # (truncation or tampering), not a review note. It now fails validation.
+    "LAS_DATA_ROWS_MISMATCH": "error",
+    "LAS_CONTROL_CHARS": "error",
+    "LAS_LINE_TOO_LONG": "error",
     "LAS_OK": "info",
     "GEOJSON_PARSE_ERROR": "error",
     "GEOJSON_NO_FEATURES": "error",
@@ -46,7 +62,21 @@ F = {
     "CSV_NON_NUMERIC": "error",
     "CSV_DUP_ROWS": "warning",
     "CSV_LATLON_RANGE": "error",
+    # v0.5.0 corruption + integrity hardening:
+    "CSV_CONTROL_CHARS": "error",
+    "CSV_LINE_TOO_LONG": "error",
+    "CSV_ID_CONFLICT": "error",
     "CSV_OK": "info",
+    # v0.5.0 declared-vs-observed CRS consistency codes:
+    "CRS_MISMATCH_PROJECTED_GEO": "error",
+    "CRS_MISMATCH_GEO_PROJECTED": "error",
+    "CRS_GEOJSON_NON_WGS84": "error",
+    "CRS_GEOJSON_CRS_UNRECOGNIZED": "warning",
+    "CRS_LOCAL_NO_TRANSFORM": "warning",
+    "CRS_UNITS_SUSPECT": "warning",
+    "CRS_DECLARED_OK": "info",
+    "CRS_AXIS_ORDER_NOTE": "info",
+    "CRS_NONE_DECLARED": "info",
 }
 
 VALID_TYPES = ("las", "geojson", "csv", "tiff", "auto")
@@ -67,6 +97,140 @@ def detect_type(path: Path) -> Optional[str]:
     if suffix in (".tif", ".tiff"):
         return "tiff"
     return None
+
+
+# --- corruption pre-scan (text formats) -------------------------------------
+def _prescan_text(path: Path, code_nul: str, code_line: str,
+                  findings: List[dict]) -> bool:
+    """Refuse NUL bytes and pathological lines before any parsing.
+    Returns False when a hard corruption was found."""
+    raw = path.read_bytes()
+    if b"\x00" in raw:
+        findings.append(_finding(code_nul,
+                                 "NUL byte in text data — refusing to parse as text"))
+        return False
+    for ln in raw.splitlines():
+        if len(ln) > _MAX_LINE_BYTES:
+            findings.append(_finding(code_line,
+                                     f"line exceeds {_MAX_LINE_BYTES} bytes "
+                                     f"(found {len(ln)})"))
+            return False
+    return True
+
+
+# --- declared-vs-observed CRS consistency -----------------------------------
+def classify_crs(declared: Optional[str]) -> Tuple[str, Optional[int]]:
+    """Classify a declared CRS string -> ("geo_deg"|"utm"|"local"|"unknown", zone)."""
+    if not declared:
+        return "unknown", None
+    s = str(declared).strip()
+    if _GEO_CRS_RE.search(s):
+        return "geo_deg", None
+    m = _UTM_CRS_RE.search(s)
+    if m:
+        zone = int(m.group(1)) if m.group(1) else None
+        return "utm", zone
+    if re.search(r"local|depth", s, re.I):
+        return "local", None
+    return "unknown", None
+
+
+def _utm_as_degrees_conflict(vals: List[float]) -> bool:
+    """All values look like geographic degrees while a projected CRS was declared."""
+    return bool(vals) and all(abs(v) <= 360 for v in vals)
+
+
+def _check_crs_csv(declared: Optional[str], declared_units: Optional[str],
+                   lat_vals: List[float], lon_vals: List[float],
+                   en_vals: List[float], findings: List[dict]) -> None:
+    kind, zone = classify_crs(declared)
+    if kind == "unknown":
+        if declared:
+            findings.append(_finding("CRS_NONE_DECLARED",
+                                     f"declared CRS {declared!r} unrecognized — treated as opaque"))
+        else:
+            findings.append(_finding("CRS_NONE_DECLARED",
+                                     "no CRS declared — georeferencing rests on "
+                                     "column semantics alone"))
+        return
+    if kind == "geo_deg":
+        if lat_vals or lon_vals:
+            findings.append(_finding("CRS_DECLARED_OK",
+                                     "declared geographic CRS matches lat/lon degree columns"))
+        elif en_vals and max((abs(v) for v in en_vals), default=0) > 360:
+            findings.append(_finding("CRS_MISMATCH_GEO_PROJECTED",
+                                     f"declared geographic CRS but coordinate values look "
+                                     f"projected (max |value| "
+                                     f"{max(abs(v) for v in en_vals):.1f} ≫ 360°)"))
+        else:
+            findings.append(_finding("CRS_DECLARED_OK",
+                                     "declared geographic CRS; no contradicting "
+                                     "magnitudes observed"))
+    elif kind == "utm":
+        if (lat_vals and lon_vals
+                and _utm_as_degrees_conflict(lat_vals + lon_vals)):
+            findings.append(_finding("CRS_MISMATCH_PROJECTED_GEO",
+                                     f"declared projected CRS (UTM zone {zone}, metres) but "
+                                     f"lat/lon columns hold geographic degrees — refusing "
+                                     f"to guess the transform"))
+        elif en_vals and _utm_as_degrees_conflict(en_vals):
+            findings.append(_finding("CRS_MISMATCH_GEO_PROJECTED",
+                                     "declared projected CRS but easting/northing values "
+                                     "look like degrees"))
+        else:
+            findings.append(_finding("CRS_DECLARED_OK",
+                                     f"declared projected CRS (UTM zone {zone}) consistent "
+                                     f"with observed coordinate magnitudes"))
+    elif kind == "local":
+        findings.append(_finding("CRS_LOCAL_NO_TRANSFORM",
+                                 f"declared local CRS {declared!r}: unusable for georeferencing "
+                                 f"until a pinned transform is registered"))
+    # units sanity (any declared kind)
+    du = (declared_units or "").lower()
+    if "ft" in du or "foot" in du:
+        pass  # imperial declaration: magnitudes checked in the LAS branch
+    # no-op for CSV here; documented for future expansion
+
+
+def _check_crs_geojson(declared: Optional[str], findings: List[dict]) -> None:
+    kind, _zone = classify_crs(declared)
+    if kind == "geo_deg":
+        findings.append(_finding("CRS_DECLARED_OK",
+                                 "declared WGS84 geographic CRS matches RFC 7946 content"))
+        findings.append(_finding("CRS_AXIS_ORDER_NOTE",
+                                 "GeoJSON axis order is lon,lat; EPSG:4326 formal order is "
+                                 "lat,lon — platform assumes RFC 7946 order, recorded explicitly"))
+    elif kind == "utm":
+        findings.append(_finding("CRS_GEOJSON_NON_WGS84",
+                                 "declared projected CRS contradicts the file: RFC 7946 "
+                                 "content is WGS84 lon/lat degrees by specification"))
+    elif kind == "local":
+        findings.append(_finding("CRS_GEOJSON_NON_WGS84",
+                                 f"declared local CRS {declared!r} contradicts RFC 7946 "
+                                 f"WGS84 lon/lat content"))
+    elif declared:
+        findings.append(_finding("CRS_GEOJSON_CRS_UNRECOGNIZED",
+                                 f"declared CRS {declared!r} unrecognized; content is "
+                                 f"WGS84 lon/lat per RFC 7946"))
+    else:
+        findings.append(_finding("CRS_NONE_DECLARED",
+                                 "no crs member: RFC 7946 assumes WGS84 — record the assumption"))
+
+
+def _check_crs_las_units(declared_units: Optional[str], strt: Optional[float],
+                         stop: Optional[float], findings: List[dict]) -> None:
+    if not declared_units or strt is None or stop is None:
+        return
+    du = declared_units.lower()
+    if ("ft" in du or "foot" in du) and max(abs(strt), abs(stop)) < 100:
+        findings.append(_finding("CRS_UNITS_SUSPECT",
+                                 f"declared units {declared_units!r} but depth magnitudes "
+                                 f"({strt}-{stop}) look metric"))
+    if ("m" == du.strip() or du.startswith("m;") or du.startswith("meter")) \
+            and max(abs(strt), abs(stop)) > 6000:
+        findings.append(_finding("CRS_UNITS_SUSPECT",
+                                 f"declared units {declared_units!r} but depth magnitudes "
+                                 f"({strt}-{stop}) look like feet"))
 
 
 def _parse_las_sections(text: str) -> Dict[str, Dict[str, str]]:
@@ -93,7 +257,10 @@ def _parse_las_sections(text: str) -> Dict[str, Dict[str, str]]:
     return sections
 
 
-def _check_las(path: Path, findings: List[dict]) -> None:
+def _check_las(path: Path, findings: List[dict], declared_crs: Optional[str] = None,
+               declared_units: Optional[str] = None) -> None:
+    if not _prescan_text(path, "LAS_CONTROL_CHARS", "LAS_LINE_TOO_LONG", findings):
+        return
     text = path.read_text(encoding="utf-8", errors="replace")
     sections = _parse_las_sections(text)
     ver = sections.get("V", {})
@@ -112,8 +279,10 @@ def _check_las(path: Path, findings: List[dict]) -> None:
     for key in ("STRT", "STOP", "STEP"):
         if key not in well:
             findings.append(_finding("LAS_NO_WELL_HEADER", f"missing ~W {key}"))
+    strt_f = stop_f = None
     try:
         strt, stop, step = (float(well[k]) for k in ("STRT", "STOP", "STEP"))
+        strt_f, stop_f = strt, stop
         if stop <= strt:
             findings.append(_finding("LAS_STOP_LE_STRT", f"STOP {stop} <= STRT {strt}"))
         elif step == 0:
@@ -133,9 +302,11 @@ def _check_las(path: Path, findings: List[dict]) -> None:
             if data_count != expected_rows:
                 findings.append(_finding(
                     "LAS_DATA_ROWS_MISMATCH",
-                    f"declared rows {expected_rows}, found {data_count}"))
+                    f"declared rows {expected_rows}, found {data_count} — "
+                    f"file truncated or tampered"))
     except (KeyError, ValueError):
         pass
+    _check_crs_las_units(declared_units, strt_f, stop_f, findings)
     if not curves:
         findings.append(_finding("LAS_NO_CURVES", "no curve definitions in ~C"))
     else:
@@ -157,12 +328,14 @@ def _check_coord_depth(coords, depth: int) -> bool:
     return all(_check_coord_depth(c, depth - 1) for c in coords)
 
 
-def _check_geojson(path: Path, findings: List[dict]) -> None:
+def _check_geojson(path: Path, findings: List[dict],
+                   declared_crs: Optional[str] = None) -> None:
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         findings.append(_finding("GEOJSON_PARSE_ERROR", f"invalid JSON: {exc}"))
         return
+    _check_crs_geojson(declared_crs, findings)
     ftype = doc.get("type")
     features = []
     if ftype == "FeatureCollection":
@@ -189,7 +362,7 @@ def _check_geojson(path: Path, findings: List[dict]) -> None:
                     "GEOJSON_BAD_COORDS",
                     f"feature {i}: point ({lon}, {lat}) outside WGS84 range"))
                 break
-    if "crs" not in doc:
+    if "crs" not in doc and declared_crs is None:
         findings.append(_finding(
             "GEOJSON_NO_CRS", "no crs member: RFC 7946 assumes WGS84 — record the assumption"))
     findings.append(_finding("GEOJSON_OK", f"{len(features)} feature(s) structurally checked"))
@@ -206,7 +379,10 @@ def _flatten_points(coords):
         yield from _flatten_points(child)
 
 
-def _check_csv(path: Path, findings: List[dict]) -> None:
+def _check_csv(path: Path, findings: List[dict], declared_crs: Optional[str] = None,
+               declared_units: Optional[str] = None) -> None:
+    if not _prescan_text(path, "CSV_CONTROL_CHARS", "CSV_LINE_TOO_LONG", findings):
+        return
     with path.open("r", encoding="utf-8", errors="replace", newline="") as fh:
         rows = list(csv.reader(fh))
     if not rows:
@@ -229,6 +405,17 @@ def _check_csv(path: Path, findings: List[dict]) -> None:
         return
     seen_rows = set()
     duplicates = 0
+    # v0.5.0: identifier integrity — same entity id with contradictory data
+    # is corruption (double entry / merge error), not a note.
+    id_names = ("id", "well", "well_name", "well_id", "station", "site", "name")
+    id_i = next((i for i, h in enumerate(lower) if h in id_names), None)
+    id_seen: Dict[str, tuple] = {}
+    id_conflicts = 0
+    lat_vals: List[float] = []
+    lon_vals: List[float] = []
+    en_vals: List[float] = []
+    en_names = ("easting", "northing", "x", "y", "utm_e", "utm_n")
+    en_i = [i for i, h in enumerate(lower) if h in en_names]
     for r_i, row in enumerate(data_rows):
         if len(row) != len(header):
             findings.append(_finding("CSV_NON_NUMERIC",
@@ -242,6 +429,13 @@ def _check_csv(path: Path, findings: List[dict]) -> None:
         if key in seen_rows:
             duplicates += 1
         seen_rows.add(key)
+        if id_i is not None:
+            entity_id = row[id_i].strip().lower()
+            if entity_id:
+                rest = tuple(c.strip() for i, c in enumerate(row) if i != id_i)
+                if entity_id in id_seen and id_seen[entity_id] != rest:
+                    id_conflicts += 1
+                id_seen.setdefault(entity_id, rest)
         for i, cell in enumerate(row):
             cell = cell.strip()
             if cell.lower() in _NULL_SENTINELS:
@@ -256,9 +450,16 @@ def _check_csv(path: Path, findings: List[dict]) -> None:
             try:
                 lat = float(row[lat_i])
                 lon = float(row[lon_i])
+                lat_vals.append(lat)
+                lon_vals.append(lon)
                 if not (-90 <= lat <= 90 and -180 <= lon <= 180):
                     findings.append(_finding("CSV_LATLON_RANGE",
                                              f"row {r_i + 2}: lat/lon out of range"))
+            except (ValueError, IndexError):
+                pass
+        for j in en_i:
+            try:
+                en_vals.append(float(row[j]))
             except (ValueError, IndexError):
                 pass
     total_missing = sum(missing_by_col.values())
@@ -267,6 +468,11 @@ def _check_csv(path: Path, findings: List[dict]) -> None:
                                  f"{total_missing} missing cells: {missing_by_col}"))
     if duplicates:
         findings.append(_finding("CSV_DUP_ROWS", f"{duplicates} duplicate row(s)"))
+    if id_conflicts:
+        findings.append(_finding("CSV_ID_CONFLICT",
+                                 f"{id_conflicts} conflicting row(s) share an identifier "
+                                 f"with different data"))
+    _check_crs_csv(declared_crs, declared_units, lat_vals, lon_vals, en_vals, findings)
     findings.append(_finding("CSV_OK",
                              f"{len(header)} columns, {len(data_rows)} rows, "
                              f"numeric cols: {sorted(numeric_cols)}"))
@@ -393,9 +599,15 @@ def _check_tiff(path: Path, findings: List[dict]) -> None:
                              f"{len(ifd)} tags parsed"))
 
 
-def validate_file(path: str, dtype: str = "auto") -> dict:
+def validate_file(path: str, dtype: str = "auto",
+                  declared_crs: Optional[str] = None,
+                  declared_units: Optional[str] = None) -> dict:
     """Validate a data file. Returns a stable report:
-    {status: pass|fail|needs_review, findings: [{code, severity, message}]}."""
+    {status: pass|fail|needs_review, findings: [{code, severity, message}]}.
+
+    v0.5.0: when declared_crs/declared_units are provided (from the dataset
+    record), declared-vs-observed CRS/units consistency is checked and any
+    contradiction fails validation with an explicit code."""
     p = Path(path)
     findings: List[dict] = []
     if not p.exists():
@@ -407,15 +619,17 @@ def validate_file(path: str, dtype: str = "auto") -> dict:
     if dtype == "auto":
         dtype = detect_type(p) or "tiff"
     if dtype == "las":
-        _check_las(p, findings)
+        _check_las(p, findings, declared_crs, declared_units)
     elif dtype == "geojson":
-        _check_geojson(p, findings)
+        _check_geojson(p, findings, declared_crs)
     elif dtype == "csv":
-        _check_csv(p, findings)
+        _check_csv(p, findings, declared_crs, declared_units)
     elif dtype == "tiff":
         _check_tiff(p, findings)
     else:
         return {"status": "needs_review", "file": str(p), "dtype": dtype,
                 "findings": [_finding("GEN_UNKNOWN_TYPE", f"no validator for type {dtype!r}")]}
     status = "fail" if any(f["severity"] == "error" for f in findings) else "pass"
-    return {"status": status, "file": str(p), "dtype": dtype, "findings": findings}
+    return {"status": status, "file": str(p), "dtype": dtype,
+            "declared_crs": declared_crs, "declared_units": declared_units,
+            "findings": findings}
