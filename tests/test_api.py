@@ -30,6 +30,17 @@ def test_engine_detail_and_404():
     assert client.get("/api/v1/engines/not-real").status_code == 404
 
 
+def test_domains_endpoint():
+    r = client.get("/api/v1/domains")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["count"] == 9
+    names = [d["domain"] for d in body["domains"]]
+    assert {"geophysics", "well_logs", "hydrology"} <= set(names)
+    hydro = next(d for d in body["domains"] if d["domain"] == "hydrology")
+    assert hydro["engine_count"] == 3  # modflow6, landlab, pastas
+
+
 def test_plan_groundwater_arabic():
     payload = {"request": "ادرس احتمالية المياه الجوفية حول هذه الإحداثيات"}
     r = client.post("/api/v1/plans", json=payload)
@@ -40,6 +51,32 @@ def test_plan_groundwater_arabic():
     assert "hydrology" in body["matched_domains"]
     assert "modflow6" in body["steps"][0]["candidate_engines"]
     assert body["disclaimer"]
+
+
+def test_plan_unknown_returns_422_not_fabricated_gis():
+    # v0.1 returned a fabricated GIS plan; honesty gate now returns 422.
+    r = client.post("/api/v1/plans", json={"request": "مرحبا"})
+    assert r.status_code == 422
+    detail = r.json()["detail"]
+    assert detail["error"] == "unknown_domain"
+    assert detail["message"]
+    assert "gis" in detail["supported_domains"]
+
+
+def test_plan_geophysics_and_well_logs():
+    r = client.post(
+        "/api/v1/plans",
+        json={"request": "عكس جيوفيزيائي كهرومغناطيسي للمنطقة", "language": "ar"},
+    )
+    assert r.status_code == 200
+    assert r.json()["matched_domains"] == ["geophysics"]
+
+    r = client.post(
+        "/api/v1/plans",
+        json={"request": "تحليل سجل LAS للبئر رقم 5", "language": "ar"},
+    )
+    assert r.status_code == 200
+    assert r.json()["matched_domains"] == ["well_logs"]
 
 
 def test_plan_validation():

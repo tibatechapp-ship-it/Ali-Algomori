@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geologia"
-version = "0.0.1"
+version = "0.2.0"
 description = "GEOLOGIA - open-source bilingual geoscience intelligence platform (foundation)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,6 +16,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7", "httpx>=0.24"]
 lint = ["ruff>=0.5"]
+
+[project.scripts]
+geologia = "geologia.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

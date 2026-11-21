@@ -7,13 +7,17 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from geologia import __version__
-from geologia.planner import build_plan
+from geologia.planner import UnknownDomainError, build_plan, list_planner_domains
 from geologia.registry import get_engine, list_engines
 
 app = FastAPI(
     title="GEOLOGIA API",
     version=__version__,
-    description="Foundation nucleus: engine registry + analysis planner (plans only).",
+    description=(
+        "Foundation nucleus: engine registry + analysis planner (plans only). "
+        "POST /api/v1/plans returns 422 when no scientific domain matches — "
+        "the planner never fabricates a default GIS plan."
+    ),
 )
 
 
@@ -47,10 +51,27 @@ def engine_detail(engine_id: str) -> dict:
     return card
 
 
+@app.get("/api/v1/domains")
+def domains() -> dict:
+    items = list_planner_domains()
+    return {"count": len(items), "domains": items}
+
+
 @app.post("/api/v1/plans")
 def create_plan(body: PlanRequest) -> dict:
     if body.language not in ("ar", "en"):
         raise HTTPException(status_code=422, detail="language must be 'ar' or 'en'")
     if body.bbox is not None and len(body.bbox) != 4:
         raise HTTPException(status_code=422, detail="bbox must have 4 numbers")
-    return build_plan(body.request, body.language, body.bbox)
+    try:
+        return build_plan(body.request, body.language, body.bbox)
+    except UnknownDomainError as exc:
+        # Honesty gate: no fabricated GIS plan for unrecognized requests.
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "unknown_domain",
+                "message": exc.message,
+                "supported_domains": exc.supported_domains,
+            },
+        )
