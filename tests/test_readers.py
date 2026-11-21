@@ -8,6 +8,8 @@ code — a generic failure is not enough.
 import warnings
 from pathlib import Path
 
+import pytest
+
 
 from geologia.data_layer.evidence import compile_evidence
 from geologia.data_layer.readers import (capabilities, parse_geokeys,
@@ -22,6 +24,23 @@ REF = DATA / "reference"
 
 def codes(reader_result):
     return [f["code"] for f in reader_result["findings"]]
+
+
+# Honest engine gates: a direct reader test without its engine SKIPS with a
+# named reason (visible in CI output) — it never fails and never pretends.
+_cap = capabilities()
+req_lasio = pytest.mark.skipif(
+    not _cap["lasio"],
+    reason="lasio absent — LAS deep-read verification cannot run and will "
+           "NOT be claimed")
+req_tifffile = pytest.mark.skipif(
+    not _cap["tifffile"],
+    reason="tifffile absent — GeoTIFF deep-read verification cannot run and "
+           "will NOT be claimed")
+req_pyproj = pytest.mark.skipif(
+    not _cap["pyproj"],
+    reason="pyproj absent — SRS definition verification cannot run and will "
+           "NOT be claimed")
 
 
 # --- capabilities: the layer must state its engines honestly ------------------
@@ -55,6 +74,7 @@ def test_parse_geokeys_inline_single_short_values():
 
 
 # --- LAS via lasio --------------------------------------------------------------
+@req_lasio
 def test_las_valid_read_matches_reference():
     r = read_las(str(REF / "ref_las_valid.las"))
     assert r["ok"] is True
@@ -69,6 +89,7 @@ def test_las_valid_read_matches_reference():
     assert "LAS_READER_NULL_HONORED" in verified
 
 
+@req_lasio
 def test_las_row_count_lie_is_caught_independently():
     r = read_las(str(REF / "ref_las_rows_lie.las"))
     assert "LAS_READER_ROWS_MISMATCH" in codes(r)
@@ -77,11 +98,13 @@ def test_las_row_count_lie_is_caught_independently():
     assert sev["severity"] == "error"
 
 
+@req_lasio
 def test_las_truncated_partial_last_row_is_caught():
     r = read_las(str(REF / "ref_las_truncated.las"))
     assert "LAS_READER_ROWS_MISMATCH" in codes(r)
 
 
+@req_lasio
 def test_las_missing_curve_unit_is_flagged():
     r = read_las(str(REF / "ref_las_no_units.las"))
     assert "LAS_CURVE_UNIT_MISSING" in codes(r)
@@ -90,6 +113,7 @@ def test_las_missing_curve_unit_is_flagged():
     assert sev["severity"] == "warning"
 
 
+@req_lasio
 def test_las_nul_bytes_become_non_numeric_refusal():
     r = read_las(str(DATA / "golden_las_nul.las"))
     assert "LAS_READER_NON_NUMERIC" in codes(r)
@@ -97,6 +121,7 @@ def test_las_nul_bytes_become_non_numeric_refusal():
                if f["code"] == "LAS_READER_NON_NUMERIC")
 
 
+@req_lasio
 def test_las_reader_agrees_with_text_validator_on_truncated_rows():
     from geologia.data_layer.validators import validate_file
     rep = validate_file(str(DATA / "golden_las_truncated.las"), "las")
@@ -107,6 +132,8 @@ def test_las_reader_agrees_with_text_validator_on_truncated_rows():
 
 
 # --- GeoTIFF via tifffile --------------------------------------------------------
+@req_tifffile
+@req_pyproj
 def test_geotiff_valid_read_matches_reference():
     r = read_geotiff(str(REF / "ref_dem_utm38n_msl.tif"))
     assert r["ok"] is True
@@ -122,6 +149,7 @@ def test_geotiff_valid_read_matches_reference():
     assert "TIFF_CRS_ENGINE_VERIFIED" in verified
 
 
+@req_tifffile
 def test_geotiff_extent_arithmetic_is_independent_recomputation():
     """The extent must come from tiepoint+scale math, not from a tag."""
     r = read_geotiff(str(REF / "ref_dem_utm38n_msl.tif"))
@@ -133,6 +161,7 @@ def test_geotiff_extent_arithmetic_is_independent_recomputation():
     assert d["extent"]["miny"] == y0 - sy * h
 
 
+@req_tifffile
 def test_geotiff_declared_crs_contradiction_is_an_error():
     r = read_geotiff(str(REF / "ref_dem_utm38n_msl.tif"),
                      declared_crs="EPSG:32637")
@@ -143,6 +172,7 @@ def test_geotiff_declared_crs_contradiction_is_an_error():
     assert "CRS_READER_MATCH" in verified
 
 
+@req_tifffile
 def test_geotiff_nodata_read():
     r = read_geotiff(str(REF / "ref_dem_utm38n_msl.tif"))
     assert r["data"]["nodata"] == -9999.0
@@ -160,6 +190,7 @@ def test_geotiff_without_geokeys_reports_missing_not_guesses(tmp_path):
 
 
 # --- GeoPackage via sqlite3 -------------------------------------------------------
+@req_pyproj
 def test_gpkg_valid_read_matches_reference():
     r = read_geopackage(str(REF / "ref_gpkg_wells.gpkg"))
     assert r["ok"] is True
