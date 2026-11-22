@@ -1,4 +1,4 @@
-# التقييم الذاتي الصادق — GEOLOGIA v0.8.1
+# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.15.1)
 
 **Honest self-assessment: what we built, what is strong, what is weak, and what
 we are doing about it — measured, not vibes.**
@@ -10,15 +10,22 @@ we are doing about it — measured, not vibes.**
 
 ## ملخص تنفيذي (English)
 
-At v0.8.1, GEOLOGIA is a **381-test green foundation** with a rare epistemic
+Historical baseline (v0.8.1): GEOLOGIA was a **381-test green foundation**
+with a rare epistemic
 discipline: three-layer evidence, tamper-evident provenance, honest-skip gates,
 and refusal-by-default knowledge. Its unique market position is the combination
 of an auditable evidence layer with Arabic-first bilingualism — unclaimed by any
 surveyed platform. Its main weaknesses are external: no remote CI, no community,
-no published artifacts, and a small knowledge corpus. This release directly fixes
+no published artifacts, and a small knowledge corpus. That release directly fixes
 the governance gap (LICENSE/NOTICE/SUPPORT), the interface gap (bilingual
 corporate README), and the hygiene gap (stray tracked files), and sets the
 measured roadmap for the rest.
+
+Current baseline (v0.15.1): core **438 passing / 12 skipped** on the full
+path, workspace **366 passing / 37 skipped** on the CI gate (**425/3**
+locally with full extras), ruff clean on both layers. The strengths and
+weaknesses below were measured at the historical baseline and are kept as
+the honest record — any claim that moved since carries its update inline.
 
 ---
 

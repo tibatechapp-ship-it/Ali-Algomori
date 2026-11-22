@@ -78,6 +78,16 @@ def tiny_cap_server(tmp_path_factory):
     _stop(proc)
 
 
+@pytest.fixture(scope="module")
+def gated_server(tmp_path_factory):
+    """Server with GEOLOGIA_UPLOAD_CONCURRENCY=1: uploads fully serialize."""
+    base, proc = _spawn_server(
+        tmp_path_factory.mktemp("uploads-gated"),
+        {"GEOLOGIA_UPLOAD_CONCURRENCY": "1"})
+    yield base
+    _stop(proc)
+
+
 def http_json(base, path, method="GET", payload=None, expect=None):
     req = urllib.request.Request(base + path, method=method)
     data = None
@@ -234,3 +244,22 @@ def test_upload_oversize_413_before_reading_body_live(tiny_cap_server):
     status, listing = http_json(tiny_cap_server, "/api/v1/datasets",
                                 expect=200)
     assert listing["datasets"] == []  # nothing registered, nothing quarantined
+
+
+# 21 -------------------------------------------------------------------------
+def test_upload_gate_limit_one_serves_sequentially(gated_server):
+    """The concurrency gate (v0.15.1) at its hard minimum must not
+    deadlock or leak: distinct valid uploads succeed one after the
+    other, each fully processed under the serialized gate."""
+    status, pol = http_json(gated_server, "/api/v1/uploads/policy",
+                            expect=200)
+    assert pol["concurrency_env"] == "GEOLOGIA_UPLOAD_CONCURRENCY"
+    assert pol["max_concurrent_uploads"] == 1
+    raw_las = (DATA / "golden_las_valid.las").read_bytes()
+    status, first = http_upload(gated_server, "gate_1.las", raw_las,
+                                expect=200)
+    assert first["status"] in ("proven", "proven_with_unverified_claims")
+    raw_csv = (DATA / "golden_wells.csv").read_bytes()
+    status, second = http_upload(gated_server, "gate_2.csv", raw_csv,
+                                 expect=200)
+    assert second["status"] in ("proven", "proven_with_unverified_claims")

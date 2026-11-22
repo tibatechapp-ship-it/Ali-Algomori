@@ -4,6 +4,15 @@ Audit date: 2026-11-22
 Audited branch: `main` at `3de291c1253802b87414a8dd18452a8b9130ff99`
 Purpose: distinguish implemented behavior from claims, record defects found during the full-history review, and define safe next steps.
 
+> **Baseline drift note (2026-11-23):** this audit was taken at `3de291c`;
+> `main` has advanced since (v0.14.0 → v0.15.0 → v0.15.1: offline
+> backup/restore, read-only storage audit, concurrency race tests, bounded
+> reception limits with an upload concurrency gate). Gate numbers at the
+> v0.15.1 tag: core 438 passing / 12 skipped, workspace 366 passing /
+> 37 skipped on the CI gate (425/3 locally with full extras). The findings
+> below describe the audited commit — re-verify each against `main` before
+> acting on it.
+
 ## Executive status
 
 GEOLOGIA is an early-stage local geoscience workspace and planning API. It is not yet a production platform, an AI reasoning system, or a scientific analysis suite. The current application can create projects, store bounded uploads, inspect a subset of vector/table structure, record deterministic plans, and perform GeoJSON coordinate reprojection when the optional GIS dependency is installed.

@@ -24,7 +24,9 @@
 #
 # Strict parsing guarantees: content is only ever read as bytes, struct
 # fields, or via json.loads/csv — never executed, never eval'd, never
-# expanded beyond the caps below. All caps are env-tunable but always bounded.
+# expanded beyond the caps below. All caps are env-tunable but always
+# bounded: every value is clamped into a per-limit [min, max] range
+# (v0.15.1) — no environment value can push a cap out of its domain.
 from __future__ import annotations
 
 import hashlib
@@ -46,32 +48,48 @@ DEFAULT_MAX_ARCHIVE_UNCOMPRESSED = 1 << 30          # 1 GiB total expansion
 DEFAULT_MAX_LINE_BYTES = 1 << 20                    # 1 MiB per text line
 
 
-def _env_int(name: str, default: int) -> int:
+def bounded_env_int(name: str, default: int,
+                    minimum: int, maximum: int) -> int:
+    """Env-tunable integer limit that is ALWAYS bounded.
+
+    Unset/empty or non-integer values fall back to `default`; a parsed
+    integer outside [minimum, maximum] is clamped into range. This turns
+    "always bounded" from a description into a fact: no environment
+    value — negative, zero, absurd, or garbage — can push a cap below
+    `minimum` or above `maximum`.
+    """
+    raw = (os.environ.get(name) or "").strip()
     try:
-        return int(os.environ.get(name, "") or default)
+        value = int(raw) if raw else default
     except ValueError:
         return default
+    return max(minimum, min(maximum, value))
 
 
 def max_upload_bytes() -> int:
-    return _env_int("GEOLOGIA_MAX_UPLOAD_BYTES", DEFAULT_MAX_UPLOAD_BYTES)
+    return bounded_env_int("GEOLOGIA_MAX_UPLOAD_BYTES",
+                           DEFAULT_MAX_UPLOAD_BYTES, 1, 1 << 30)
 
 
 def max_archive_ratio() -> int:
-    return _env_int("GEOLOGIA_MAX_ARCHIVE_RATIO", DEFAULT_MAX_ARCHIVE_RATIO)
+    return bounded_env_int("GEOLOGIA_MAX_ARCHIVE_RATIO",
+                           DEFAULT_MAX_ARCHIVE_RATIO, 2, 10_000)
 
 
 def max_archive_entries() -> int:
-    return _env_int("GEOLOGIA_MAX_ARCHIVE_ENTRIES", DEFAULT_MAX_ARCHIVE_ENTRIES)
+    return bounded_env_int("GEOLOGIA_MAX_ARCHIVE_ENTRIES",
+                           DEFAULT_MAX_ARCHIVE_ENTRIES, 1, 4096)
 
 
 def max_archive_uncompressed() -> int:
-    return _env_int("GEOLOGIA_MAX_ARCHIVE_UNCOMPRESSED",
-                    DEFAULT_MAX_ARCHIVE_UNCOMPRESSED)
+    return bounded_env_int("GEOLOGIA_MAX_ARCHIVE_UNCOMPRESSED",
+                           DEFAULT_MAX_ARCHIVE_UNCOMPRESSED,
+                           1 << 20, 1 << 33)
 
 
 def max_line_bytes() -> int:
-    return _env_int("GEOLOGIA_MAX_LINE_BYTES", DEFAULT_MAX_LINE_BYTES)
+    return bounded_env_int("GEOLOGIA_MAX_LINE_BYTES",
+                           DEFAULT_MAX_LINE_BYTES, 256, 1 << 24)
 
 
 # ---------------------------------------------------------------------------

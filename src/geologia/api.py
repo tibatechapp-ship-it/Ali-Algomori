@@ -2,6 +2,7 @@
 # + retrieval-only knowledge base + dataset verification + gated task ledger
 # + first-party certified engine execution with evidence reports
 # + HTTP upload boundary routing every byte through the reception gate.
+import asyncio
 import json
 from pathlib import Path
 from typing import List, Optional
@@ -20,7 +21,10 @@ from geologia.data_layer.certification import (
 )
 from geologia.data_layer.evidence import prove_file
 from geologia.data_layer.provenance import ProvenanceLog
-from geologia.data_layer.reception import max_upload_bytes
+from geologia.data_layer.reception import (
+    bounded_env_int,
+    max_upload_bytes,
+)
 from geologia.knowledge.retrieval import get_kb
 from geologia.planner import UnknownDomainError, build_plan, list_planner_domains
 from geologia.registry import certified_engines, get_engine, list_engines
@@ -236,6 +240,28 @@ def verify_checksum(dataset_id: str) -> dict:
 # transport-side size cap and streams; every other decision belongs to
 # data_layer (reception security -> registration -> proof -> provenance).
 # ---------------------------------------------------------------------------
+# Upload concurrency gate (v0.15.1): each upload holds a bounded buffer
+# (up to the reception cap), so unbounded concurrent uploads multiply peak
+# memory. The gate bounds simultaneous upload requests per process; the
+# limit is env-tunable but always clamped into [1, 64] by bounded_env_int.
+_UPLOAD_GATE: Optional[asyncio.Semaphore] = None
+_UPLOAD_GATE_LIMIT: int = 0
+
+
+def upload_concurrency() -> int:
+    """Bounded concurrent-upload limit (GEOLOGIA_UPLOAD_CONCURRENCY)."""
+    return bounded_env_int("GEOLOGIA_UPLOAD_CONCURRENCY", 4, 1, 64)
+
+
+def _upload_gate() -> asyncio.Semaphore:
+    global _UPLOAD_GATE, _UPLOAD_GATE_LIMIT
+    limit = upload_concurrency()
+    if _UPLOAD_GATE is None or _UPLOAD_GATE_LIMIT != limit:
+        _UPLOAD_GATE = asyncio.Semaphore(limit)
+        _UPLOAD_GATE_LIMIT = limit
+    return _UPLOAD_GATE
+
+
 @app.get("/api/v1/uploads/policy")
 def upload_policy() -> dict:
     """Reception policy a client must respect BEFORE sending bytes."""
@@ -244,6 +270,8 @@ def upload_policy() -> dict:
         "body": "application/octet-stream (raw file bytes; no multipart)",
         "max_upload_bytes": max_upload_bytes(),
         "cap_env": "GEOLOGIA_MAX_UPLOAD_BYTES",
+        "concurrency_env": "GEOLOGIA_UPLOAD_CONCURRENCY",
+        "max_concurrent_uploads": upload_concurrency(),
         "query_params": {
             "filename": "required — client name; sanitized, never trusted",
             "dtype": "auto|las|csv|geojson|tiff|gpkg (default auto)",
@@ -289,21 +317,22 @@ async def upload_file(
         except ValueError:
             raise HTTPException(status_code=400,
                                 detail="content-length is not an integer")
-    buf = bytearray()
-    async for chunk in request.stream():
-        if chunk:
-            buf.extend(chunk)
-            if len(buf) > cap:
-                raise HTTPException(status_code=413, detail={
-                    "error": "upload_too_large",
-                    "status": "rejected",
-                    "codes": ["SEC_TOO_LARGE"],
-                    "message": f"body exceeded the {cap}-byte reception cap "
-                               f"mid-stream — upload aborted",
-                })
-    result = await run_in_threadpool(
-        up.ingest_bytes, bytes(buf), filename, dtype,
-        declared_crs, declared_units, ProvenanceLog())
+    async with _upload_gate():
+        buf = bytearray()
+        async for chunk in request.stream():
+            if chunk:
+                buf.extend(chunk)
+                if len(buf) > cap:
+                    raise HTTPException(status_code=413, detail={
+                        "error": "upload_too_large",
+                        "status": "rejected",
+                        "codes": ["SEC_TOO_LARGE"],
+                        "message": f"body exceeded the {cap}-byte reception "
+                                   f"cap mid-stream — upload aborted",
+                    })
+        result = await run_in_threadpool(
+            up.ingest_bytes, bytes(buf), filename, dtype,
+            declared_crs, declared_units, ProvenanceLog())
     if result["status"] in ("rejected", "refused"):
         raise HTTPException(status_code=422, detail={
             "error": "upload_refused",
