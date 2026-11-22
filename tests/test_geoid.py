@@ -12,7 +12,6 @@ from geologia.data_layer.geoid import (
     grid_stats,
     ingest_grid,
     parse_grid_file,
-    parse_gtx,
     undulation_at,
 )
 from geologia.data_layer.vertical_rule import DEFAULT_REGISTRY, registry_path

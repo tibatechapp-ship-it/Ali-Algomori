@@ -1,5 +1,4 @@
 """T2.1 — knowledge-source intake: the no-second-door rule, tested."""
-import json
 from pathlib import Path
 
 import pytest

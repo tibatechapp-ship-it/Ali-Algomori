@@ -44,8 +44,8 @@ serious, evidence-first geoscience AI platform, this is where you join.**
 
 ## 4. How to reach the technical team — كيف تتواصل مع الفريق التقني
 
-افتح قناة التواصل الرسمية المعلنة في قسم **Contact** في
-[README.md](README.md) (بريد رسمي أو نموذج تواصل يُنشرها صاحب المشروع).
+البريد الرسمي المعتمد للمشروع: [aigeologia@gmail.com](mailto:aigeologia@gmail.com)
+وهو القناة نفسها المعلنة في قسم **Contact** في [README.md](README.md).
 أرفق دائماً: نوع الدعم المقترح، الجهة والقدرة، وما تريد أن تتحقق منه
 أولاً — وسنجيب بالأسلوب الذي نبرمج به Ali نفسه: **ما نستطيع تأكيده نقوله
 بدليله، وما لا نستطيع تأكيده لا نخترعه**.

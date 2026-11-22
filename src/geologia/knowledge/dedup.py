@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import re
 from difflib import SequenceMatcher
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Outcome codes (stable contract; tests assert them).
 BYTE_DUPLICATE = "BYTE_DUPLICATE"

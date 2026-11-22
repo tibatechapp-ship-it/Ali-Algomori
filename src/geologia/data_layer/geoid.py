@@ -23,7 +23,7 @@ import hashlib
 import math
 import struct
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 GEOID_CODES = {
     "GEOID_EMPTY_FILE": "error",
@@ -104,8 +104,10 @@ def parse_grid_file(path: str) -> dict:
                          f"ceiling of {MAX_GRID_BYTES}")
     head = p.open("rb").read(8)
     if head[:4] in (b"II*\x00", b"MM\x00*"):
+        # Availability probe: the coded refusal fires when the optional
+        # tifffile dependency is missing.
         try:
-            import tifffile
+            import tifffile  # noqa: F401
         except ImportError as exc:
             raise ValueError(
                 "GEOID_BAD_HEADER: GeoTIFF grids need the optional tifffile "

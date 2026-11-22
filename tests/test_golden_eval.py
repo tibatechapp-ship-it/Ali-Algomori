@@ -7,9 +7,7 @@ must stay hash-locked, the retrieval index must not index its own evaluation
 or agent-card files, and the deterministic audit must honor the metric gates.
 """
 import copy
-import hashlib
 import json
-from pathlib import Path
 
 import pytest
 

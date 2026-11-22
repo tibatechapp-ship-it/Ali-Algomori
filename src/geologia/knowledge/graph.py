@@ -14,7 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 
 ENTITY_TYPES = frozenset({
     "person", "institution", "place", "geologic_unit", "method", "source",

@@ -29,7 +29,10 @@ _RIGHTS_EN = (
     "copying or commercializing the code requires a written license from the "
     "owner (LICENSE.md — Arabic text governs)."
 )
-_STATUS_AR = f"حالة المشروع: قيد الإنشاء (الإصدار {__version__}) — ليس نظام إنتاج بعد، وكل نتيجة تحمل تصنيف صدقها المعلن."
+_STATUS_AR = (
+    f"حالة المشروع: قيد الإنشاء (الإصدار {__version__}) — ليس نظام إنتاج "
+    "بعد، وكل نتيجة تحمل تصنيف صدقها المعلن."
+)
 _STATUS_EN = (
     f"Project status: under construction (version {__version__}) — not a "
     "production system; every result carries its declared truth class."
