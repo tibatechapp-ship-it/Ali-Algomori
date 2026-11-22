@@ -22,11 +22,50 @@ This is a sound foundation for a lightweight, deterministic-first scientific ass
 |---|---|---|
 | Specialist definition | `skills.py`, nine domain profiles | Requirements and limits are explicit |
 | Readiness assessment | `assess_skill_readiness` | Input availability only; not mastery |
-| Multilingual routing | `skill_evaluation.py`, 23 curated cases | Regression coverage, not representative evaluation |
+| Multilingual routing | `skill_evaluation.py`, 24 total cases (23 domain-positive and 1 ambiguous abstention) | Regression coverage, not representative evaluation |
 | Domain workflows | `skill_workflows.py`, four stages per domain | Plans and acceptance criteria, not execution |
 | Executable scientific utility | `hydrology_skill.py` | Bounded CSV QC and descriptive statistics |
 | Provenance / evidence | Existing evidence and knowledge systems | Must remain the source of truth for claims |
 | Scientific certification | No broad skill benchmark or independent review report | Not established |
+
+
+## Exact repository baseline (verified against main)
+
+At reviewed main SHA `46fd8283628b3dc7e573cfac7d9edc83b77f2102`:
+
+- **9 specialist domains** are present in both `skills.py` and `skill_workflows.py`: `well_logs`, `hydrology`, `geology3d`, `seismology`, `geophysics`, `geochemistry`, `exploration`, `remote_sensing`, and `gis`.
+- Each domain has one competency profile and one **4-step planned workflow**: 36 workflow steps total. The workflow API returns `planned_not_executed`; each step starts as `not_started`. These are templates, not running agents.
+- The routing benchmark contains **24 total cases**: 23 positive domain-routing cases and one ambiguous/no-domain case. It is not 24 positives and four negatives. The existing `ALI_AGENT_ROUTING_EVALUATION.md` had stale counts and was corrected in this PR.
+- The nine profiles are contracts only: `planning_and_validation_specification_only`; `model_training_claim=false`, `engine_execution_claim=false`, and readiness always reports `mastery_status=not_certified`.
+- `ready_for_validation` means only that the caller supplied names for every required input. It does not inspect dataset contents, validate units/CRS, approve a method, or authorize execution.
+- The routing benchmark is exposed at `GET /api/v1/agent/skills/evaluation` and reports a passing curated regression result. This does not evaluate scientific outputs.
+- One bounded executable specialist utility exists: `hydrology.water_level_descriptive`. It is exposed at `POST /api/v1/datasets/{dataset_id}/skills/hydrology/water-level-summary`, requires a registered CSV dataset with role `water_levels_timeseries`, checks stored content integrity, and returns descriptive QC/statistics only.
+- Existing GIS/CRS, dataset validation, DEM readiness/coverage/accuracy, knowledge/evidence, and job-planning functionality are real platform capabilities. They should not be counted as specialist skill certification or general engine execution.
+- The main branch CI at the reviewed baseline completed successfully. PR #15's four check runs (GitGuardian, workspace, Termux compatibility, and latest test) also completed successfully on its head SHA, but PR #15 remains open and unmerged as of this audit.
+
+## Remaining work, precisely scoped
+
+### Already present — do not rebuild
+
+- Nine specialist contracts and cross-domain quality requirements.
+- Deterministic multilingual request routing and an offline regression report.
+- Nine four-stage workflow templates with explicit non-execution states.
+- Planner integration that attaches skill readiness/workflow information and prevents execution claims.
+- One descriptive hydrology CSV QC/statistics skill and its API endpoint.
+- Dataset registration/integrity checks and the platform's existing evidence/knowledge and DEM/GIS utilities.
+
+### Not yet implemented or not yet demonstrated
+
+1. A generic task-level benchmark that scores scientific artifacts against reference outputs; current benchmark only checks routing.
+2. A reviewed, held-out, representative multilingual dataset with domain adjudication and calibrated confidence/abstention metrics.
+3. More executable specialist skills (LAS header/curve QC, GIS layer/CRS audit as a skill workflow, geochemistry QA/QC, seismic catalogue metadata QC, remote-sensing metadata/GCP audit).
+4. Hydrology duplicate-timestamp policy that avoids or explicitly justifies duplicate weighting in descriptive statistics; currently duplicates are retained and warned about.
+5. Hydrology reference fixtures and independent domain review; current unit tests are software regressions, not scientific certification.
+6. A skill-level maturity/certification record persisted and shown to users; S0–S5 is proposed by this roadmap, not yet implemented.
+7. A structured task contract and controlled specialist/reviewer handoff; current workflows are static plans.
+8. Generic provenance-bearing skill evaluation reports with input/output hashes, parameters, environment, benchmark version, and reviewer metadata.
+9. Engine execution/certification for the candidate registry. Planner engine IDs are advisory candidates; registered engines are not proof of installed or validated execution.
+10. Operational eligibility for multi-user/public deployment, including authentication, project authorization, tenant isolation, quotas, and security review.
 
 ## Assessment findings
 
@@ -40,7 +79,7 @@ This is a sound foundation for a lightweight, deterministic-first scientific ass
 
 ### Gaps to close
 
-1. **Routing coverage:** 23 cases are useful smoke tests but too small and curated to estimate real-world routing quality.
+1. **Routing coverage:** the implementation has 24 total cases (23 positive cases across all nine domains, plus one ambiguous abstention). This is a useful smoke/regression suite but too small and curated to estimate real-world routing quality.
 2. **No task-level skill benchmark:** the current benchmark tests classification, not whether a specialist's artifact is correct, complete, reproducible, or safe.
 3. **Limited executable breadth:** only one specialist capability is implemented as a bounded executable skill.
 4. **Input readiness semantics:** `ready_for_validation` means required input names are present; it must not be interpreted as data quality, scientific readiness, or authorization to execute.
