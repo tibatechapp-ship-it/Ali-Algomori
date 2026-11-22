@@ -1,0 +1,67 @@
+name: Bug report | بلاغ خلل
+description: >-
+  A defect with reproducible evidence. Outputs carry truth classification —
+  include it. | خلل مع دليل قابل لإعادة الإنتاج — المخرجات تحمل تصنيف الحقيقة،
+  أرفِقه.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **English / العربية** — Please fill both the facts and the classification.
+        A report without the exact command, version, and observed output cannot be
+        accepted as evidence-first. | املأ الحقائق والتصنيف معاً: بلاغ بلا أمر
+        دقيق وإصدار ومخرجات فعلية لا يُقبَل كدليل.
+
+        > CI green is not a certificate of geological correctness. | CI الأخضر
+        > ليس شهادة صحة جيولوجية.
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer | الطبقة
+      options:
+        - "core (src/geologia, Python ≥ 3.10)"
+        - "workspace (workspace/src/geologia_workspace, Python ≥ 3.12)"
+        - "desktop release | الإصدار المكتبي"
+        - "docs / CI | وثائق / التكامل المستمر"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit | الإصدار / الالتزام
+      placeholder: "v0.19.0 or e44f32f"
+    validations:
+      required: true
+  - type: textarea
+    id: truth_class
+    attributes:
+      label: Truth classification of the affected output | تصنيف الحقيقة للمخرج المتأثر
+      description: >-
+        verified / reported / estimated / interpolated / unverified — as printed
+        by the platform. | كما يطبعها النظام.
+      placeholder: "truth_class=unverified_structural, refusal code display.refusal.not_validated"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction | خطوات إعادة الإنتاج
+      description: >-
+        Exact command, minimal input, and the observed vs expected output.
+        | الأمر الدقيق وأقل مدخل والمخرج الفعلي مقابل المتوقع.
+      placeholder: |
+        1. `python -m geologia ...`
+        2. observed: ...
+           expected: ...
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence | الدليل
+      description: >-
+        Logs, fingerprints, or file hashes that pin the failure. | سجلات أو بصمات
+        أو مجاميع تحقق تثبّت الخلل.
+    validations:
+      required: true

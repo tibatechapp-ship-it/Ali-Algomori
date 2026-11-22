@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Core layer (src/geologia) — Python >= 3.10.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "core"]
+  # Workspace layer (workspace/) — Python >= 3.12, separate pyproject.
+  - package-ecosystem: "pip"
+    directory: "/workspace"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "workspace"]
+  # CI machinery — pin bumps are reviewed like any other change.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "ci"]

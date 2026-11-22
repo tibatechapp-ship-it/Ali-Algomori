@@ -1,0 +1,47 @@
+name: Feature proposal | اقتراح ميزة
+description: >-
+  A capability proposal tied to the roadmap gates — no gate jumping.
+  | اقتراح مرتبط ببوابات خارطة الطريق — لا قفز فوق بوابة.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **English / العربية** — Proposals are judged against the governing
+        sequence (measure → assets → display → adoption) and the fixed
+        constraints, including: the trusted data layer precedes 3D/MODFLOW, and
+        every output carries its truth classification.
+        | تُقيَّم المقترحات وفق التسلسل الحاكم (قياس ← أصول ← عُرض ← تبنٍّ)
+        > والقيود الثابتة: طبقة البيانات الموثوقة تسبق 3D/MODFLOW، وكل مخرج
+        > يحمل تصنيف الحقيقة.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem | المشكلة
+      description: >-
+        What scientific or engineering need is unmet today? | ما الحاجة العلمية
+        أو الهندسية غير الملبّاة اليوم؟
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed capability | المقدَر المقترح
+    validations:
+      required: true
+  - type: dropdown
+    id: truth_impact
+    attributes:
+      label: Truth classification impact | أثر على تصنيف الحقيقة
+      description: >-
+        Does the feature change how outputs are classified? | هل يغيّر التصنيف؟
+      options:
+        - "No — classification unchanged | لا، التصنيف كما هو"
+        - "Yes — new classification or refusal codes needed | نعم، تصنيف أو رموز رفض جديدة"
+        - "Unsure — needs discussion | غير متأكد، بحاجة نقاش"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered | البدائل المعتبرة

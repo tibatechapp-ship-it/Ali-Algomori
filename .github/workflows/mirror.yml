@@ -31,6 +31,15 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # actions/checkout injects http.https://github.com/.extraheader carrying the
+      # workflow GITHUB_TOKEN, which cannot see the mirror repository — GitHub
+      # answers "Repository not found" and the URL-embedded credentials from the
+      # secret never get used. Dropping the header restores the intended auth path
+      # (secret URL, ADR-0009). Safe outside Actions too: unset of a missing key
+      # is a no-op.
+      - name: Drop Actions auth header (mirror URL credentials must win)
+        run: git config --local --unset-all http.https://github.com/.extraheader || :
+
       - name: Sync governing branch and tags to the mirror
         if: steps.guard.outputs.enabled == 'true'
         env:

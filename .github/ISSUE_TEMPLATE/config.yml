@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Official contact | القناة الرسمية للتواصل
+    url: mailto:aigeologia@gmail.com
+    about: >-
+      Licensing, partnership, and official correspondence — the project's single
+      official channel. | الترخيص والشراكة والمراسلات الرسمية — القناة الرسمية
+      الوحيدة للمشروع.
+  - name: Documentation | الوثائق
+    url: https://github.com/tibatechapp-ship-it/Ali-Algomori/tree/main/docs
+    about: >-
+      Architecture, roadmap, ADRs, and the acceptance standard.
+      | البنية والخارطة وسجلات القرارات ومعيار القبول.
