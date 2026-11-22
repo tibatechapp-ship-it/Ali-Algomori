@@ -200,22 +200,20 @@ def restore_application_backup(
             backup_database(source_db, output_db)
             database_paths[name] = output_db
 
-        expected = set()
+        expected = {}
         for record in uploads:
             if not isinstance(record, dict) or not isinstance(record.get("path"), str):
                 raise ValueError("invalid upload manifest entry")
             relative = _relative(record["path"]).as_posix()
             if relative in expected:
                 raise ValueError("duplicate upload path in manifest")
-            expected.add(relative)
-            source_file = source / "uploads" / relative
-            _verify_file(source_file, record)
-            output = uploads_stage / relative
-            output.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_file, output)
+            expected[relative] = record
 
         actual = set()
-        for folder, dirs, names in os.walk(source / "uploads", followlinks=False):
+        upload_source_root = source / "uploads"
+        if not upload_source_root.is_dir() or upload_source_root.is_symlink():
+            raise ValueError("backup upload directory is missing or unsafe")
+        for folder, dirs, names in os.walk(upload_source_root, followlinks=False):
             current = Path(folder)
             if any((current / name).is_symlink() for name in dirs):
                 raise ValueError("backup upload tree contains symlink directory")
@@ -223,9 +221,19 @@ def restore_application_backup(
                 path = current / name
                 if path.is_symlink():
                     raise ValueError("backup upload tree contains symlink file")
-                actual.add(path.relative_to(source / "uploads").as_posix())
-        if actual != expected:
+                actual.add(path.relative_to(upload_source_root).as_posix())
+        if actual != set(expected):
             raise ValueError("upload inventory does not match backup contents")
+
+        upload_root_real = upload_source_root.resolve(strict=True)
+        for relative, record in expected.items():
+            source_file = upload_source_root / relative
+            if not source_file.resolve(strict=True).is_relative_to(upload_root_real):
+                raise ValueError("backup upload path escapes its upload directory")
+            _verify_file(source_file, record)
+            output = uploads_stage / relative
+            output.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_file, output)
 
         metadata = database_paths["metadata.sqlite3"]
         with closing(sqlite3.connect(metadata)) as conn:
