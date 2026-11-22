@@ -1,7 +1,7 @@
 """Tests for Ali's auditable specialist competency profiles."""
 import pytest
 from geologia_workspace.planner import SUPPORTED_DOMAINS, build_plan
-from geologia_workspace.skills import DOMAIN_SKILLS, assess_skill_readiness, get_domain_skill_profile
+from geologia_workspace.skills import (\n    DOMAIN_SKILLS, assess_skill_readiness, get_domain_skill_profile,\n)
 
 
 def test_skill_contract_covers_every_planner_domain():
