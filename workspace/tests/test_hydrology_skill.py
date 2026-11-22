@@ -69,6 +69,10 @@ def test_duplicate_and_irregular_timestamps_are_reported(tmp_path):
 )
 def test_invalid_schema_or_measurements_fail_closed(tmp_path, csv_text):
     path = _write_csv(tmp_path / "bad.csv", csv_text)
+    if "date,level" in csv_text:
+        with pytest.raises(ValueError, match="water_level_m"):
+            analyze_water_level_timeseries(path)
+        return
     report = analyze_water_level_timeseries(path)
     assert report["status"] == "invalid_input"
     assert report["scientific_interpretation"] is False
