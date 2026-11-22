@@ -1,9 +1,11 @@
 """Read-only upload storage audit regression tests."""
 import hashlib
 import pytest
+from fastapi.testclient import TestClient
 
 from geologia_workspace import store
 from geologia_workspace.storage_audit import audit_upload_storage
+from geologia_workspace.api import app
 
 
 @pytest.fixture
@@ -86,3 +88,13 @@ def test_audit_requires_existing_metadata_database(tmp_path, monkeypatch):
     monkeypatch.setenv("GEOLOGIA_DB_PATH", str(tmp_path / "absent.sqlite3"))
     with pytest.raises(ValueError, match="does not exist"):
         audit_upload_storage()
+
+
+def test_local_api_exposes_read_only_storage_audit(audit_paths):
+    root, project = audit_paths
+    path = root / "api-dataset.blob"
+    add_dataset(project, path, b"api audit")
+    response = TestClient(app).get("/api/v1/storage/audit")
+    assert response.status_code == 200
+    assert response.json()["status"] == "clean"
+    assert response.json()["automatic_cleanup"] is False
