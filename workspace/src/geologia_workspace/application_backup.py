@@ -169,13 +169,20 @@ def restore_application_backup(
     if target.exists() or target.is_symlink():
         raise FileExistsError(target)
     manifest_path = source / "manifest.json"
-    if manifest_path.is_symlink() or not manifest_path.is_file() or (source / "uploads").is_symlink():
+    if (
+        manifest_path.is_symlink()
+        or not manifest_path.is_file()
+        or (source / "uploads").is_symlink()
+    ):
         raise ValueError("backup manifest or upload directory is missing or unsafe")
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("backup manifest is invalid") from exc
-    if manifest.get("format") != "geologia.application-backup" or manifest.get("format_version") != FORMAT_VERSION:
+    if (
+        manifest.get("format") != "geologia.application-backup"
+        or manifest.get("format_version") != FORMAT_VERSION
+    ):
         raise ValueError("unsupported application backup format")
     db_records, datasets, uploads = (
         manifest.get("databases"), manifest.get("datasets"), manifest.get("uploads")
