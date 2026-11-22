@@ -9,6 +9,7 @@ import unicodedata
 
 from geologia_workspace.normalize import normalize_text
 from geologia_workspace.registry import ENGINES
+from geologia_workspace.skills import assess_skill_readiness
 
 INTENTS = [
     {
@@ -380,6 +381,7 @@ def build_plan(request: str, language: str = "ar") -> dict:
         "matched_domains": matched_domains,
         "steps": steps,
         "required_inputs": sorted(required),
+        "agent_skill_readiness": assess_skill_readiness(matched_domains),
         "scientific_gates": GATES,
         "disclaimer": disclaimer,
     }
