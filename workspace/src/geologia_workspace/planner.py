@@ -10,6 +10,7 @@ import unicodedata
 from geologia_workspace.normalize import normalize_text
 from geologia_workspace.registry import ENGINES
 from geologia_workspace.skills import assess_skill_readiness
+from geologia_workspace.skill_workflows import get_domain_workflow
 
 INTENTS = [
     {
@@ -325,6 +326,7 @@ def build_plan(request: str, language: str = "ar") -> dict:
             "execution": "not_started",
             "routing_evidence": evidence["evidence"],
             "confidence_level": evidence["confidence_level"],
+            "skill_workflow": get_domain_workflow(domain),
         })
         required.update(item["inputs"])
         role = AGENT_ROLES[domain]
