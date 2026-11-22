@@ -19,7 +19,7 @@
 > وشركاء مؤسسيين. حقوق الابتكار محفوظة — الاستنساخ والاستخدام التجاري ممنوعان
 > إلا بترخيص كتابي من المالك.
 
-[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.15.1-3b6e4f) ![tests](https://img.shields.io/badge/tests-438_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-366_passing_%2F_37_skipped-8a5fb5) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
+[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.16.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-446_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-366_passing_%2F_37_skipped-8a5fb5) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
 
 ---
 
@@ -103,7 +103,7 @@ for regions with limited compute infrastructure.
 | [docs/ACCEPTANCE_STANDARD.md](docs/ACCEPTANCE_STANDARD.md) | The binding acceptance standard (certification) |
 | [docs/DATA_GOVERNANCE.md](docs/DATA_GOVERNANCE.md) | Data governance |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Gate-based roadmap (not calendar-based) |
-| [docs/adr/](docs/adr/) | All decisions, ADR-0001 → ADR-0008 |
+| [docs/adr/](docs/adr/) | All decisions, ADR-0001 → ADR-0009 |
 | [docs/ASSESSMENT.md](docs/ASSESSMENT.md) | Honest self-assessment: strengths, weaknesses, fixes |
 | [docs/benchmark/COMPETITIVE_MATRIX.md](docs/benchmark/COMPETITIVE_MATRIX.md) | Global comparison vs 14 platforms (open & closed) |
 | [docs/VISION.md](docs/VISION.md) | Nucleus for the Arab & Islamic world's universities, research centers, companies |
@@ -121,7 +121,7 @@ installable independently:
 | **Governed core** | `src/geologia` | Reception gate, evidence store, knowledge units & dedup line, knowledge graph, geoid gate, golden eval, audit | `pip install -e .` |
 | **Workspace** | `workspace/` | Local FastAPI workspace: bilingual RTL/LTR UI, Ali deterministic agent (AR/EN/RU/ZH), DEM coverage & readiness with tamper-evident chains, PWA, desktop & Termux launchers | `pip install -e "./workspace[dev,gis]"` |
 
-Reference suites: core **438 passing / 12 skipped**, workspace **366 passing /
+Reference suites: core **446 passing / 12 skipped**, workspace **366 passing /
 37 skipped** (workspace CI gate installs the governed core). Both layers obey
 the same doctrine — evidence first, coded refusals, honest skips — and CI
 success remains an engineering certificate, never a scientific one. Since
@@ -133,7 +133,7 @@ knowledge units remains the declared next binding step. The former standalone
 `geologia` repository remains as the workspace archive — this repository's
 [LICENSE.md](LICENSE.md) governs everything here.
 
-**Python & CI baseline (v0.15.1):** the governed core supports Python
+**Python & CI baseline (v0.16.0):** the governed core supports Python
 ≥3.10 — the CI matrix runs a `latest` path and a `termux-compat` path on
 pydantic<2 without compiled dependencies; the workspace layer requires
 Python ≥3.12 (its `pyproject.toml` pins exact ranges). The root
@@ -142,6 +142,35 @@ repository: core tests, workspace tests and ruff on both layers — a
 change counts as accepted only when that gate is green on the tagged
 commit. Every test-count claim in this README is tied to that tagged
 baseline; older numbers found anywhere else are historical, not current.
+
+### Pinned run evidence
+
+Every CI/test claim above is tied to a concrete run of the CI gate, not to
+an assertion:
+
+| Baseline | Claim | Evidence (pinned run) |
+| --- | --- | --- |
+| v0.15.1 | core 438/12 · workspace 366/37 green on the CI gate · tri-platform desktop assets | [CI run 45052350042](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052350042) · [Desktop Release run 45052349833](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052349833) at commit `b9504ea` |
+| v0.16.0 | core 446/12 · workspace 366/37 on the CI gate | run link pinned at release tagging |
+
+### Second-mirror independence (ADR-0009)
+
+The repository, CI and releases live on GitHub alone — a single-host failure
+point, and the closure of OneGeology after 18 years is the recent
+institutional lesson. v0.16.0 ships the machinery, not just the intent:
+`scripts/mirror_sync.sh` pushes the governing branch and all tags
+fast-forward-only to a second host configured via the
+`GEOLOGIA_MIRROR_REMOTE_URL` repository secret, then matches every reported
+hash, and `scripts/mirror_restore_verify.py` clones **from the mirror** and
+proves the restored history is hash-identical before running a smoke suite.
+The `.github/workflows/mirror.yml` job skips cleanly with a notice until the
+owner provisions the mirror account — an honest skip, not a fake green. The
+whole chain is tested offline end-to-end in
+[tests/test_mirror_independence.py](tests/test_mirror_independence.py),
+including a deleted tag and a diverged mirror branch being caught. Tag
+signing (PGP) activates the day a release key is provisioned; today's tags
+are annotated and unsigned, and the sync script reports that count honestly
+on every run.
 
 ## Where GEOLOGIA stands globally
 
@@ -230,7 +259,7 @@ geologia serve --port 8000
 ### المستندات
 
 المعمارية والتوثيق الكامل في الجدول أعلاه، وكل القرارات موثقة في
-[docs/adr/](docs/adr/) من ADR-0001 إلى ADR-0008، والتقييم الذاتي الصادق في
+[docs/adr/](docs/adr/) من ADR-0001 إلى ADR-0009، والتقييم الذاتي الصادق في
 [docs/ASSESSMENT.md](docs/ASSESSMENT.md)، والموقع التنافسي العالمي في
 [docs/benchmark/COMPETITIVE_MATRIX.md](docs/benchmark/COMPETITIVE_MATRIX.md)،
 ورؤية التبني الإقليمي في [docs/VISION.md](docs/VISION.md)، والمسار التعليمي
@@ -246,12 +275,12 @@ geologia serve --port 8000
 | **النواة الحاكمة** | `src/geologia` | بوابة الاستقبال، مخزن الأدلة، وحدات المعرفة وخط الجِدّة، شبكة المعرفة، بوابة الجيود، الاختبارات الذهبية | `pip install -e .` |
 | **مساحة العمل** | `workspace/` | مساحة FastAPI المحلية: واجهة ثنائية اللغة RTL/LTR، وكيل Ali الحتمي (عربي/إنجليزي/روسي/صيني)، تغطية وجاهزية DEM بسلاسل مقاومة للتلاعب، PWA، مشغّلات سطح المكتب وTermux | `pip install -e "./workspace[dev,gis]"` |
 
-المجموعتان المرجعيتان: النواة **438 ناجحاً / 12 تخطياً**، مساحة العمل
+المجموعتان المرجعيتان: النواة **446 ناجحاً / 12 تخطياً**، مساحة العمل
 **366 ناجحاً / 37 تخطياً** (بوابة CI لمساحة العمل تثبت النواة الحاكمة أولاً). الطبقتان تخضعان للعقيدة نفسها — الدليل أولاً،
 رفض مرمز، تخطٍّ صادق — ونجاح CI يبقى شهادة هندسية لا علمية أبداً. ومنذ v0.11.0 ارتبطت الطبقتان عند باب الاستيعاب: كل استيعاب معرفة في مساحة العمل (CLI والبذور) يمر أولاً عبر بوابة الاستقبال في النواة الحاكمة — البايتات المرفوضة لا تُفهرس أبداً، وكل حكم يترك أثراً في سجل المصدر المضاد للتلاعب. الاسترجاع المدعوم بشبكة المعرفة على وحدات النواة يبقى خطوة الربط المعلنة التالية. مستودع `geologia` السابق يبقى أرشيفاً
 لتاريخ مساحة العمل — و[رخصة هذا المستودع](LICENSE.md) تحكم كل ما هنا.
 
-**خط أساس Python وCI (v0.15.1):** النواة الحاكمة تدعم Python ≥3.10 —
+**خط أساس Python وCI (v0.16.0):** النواة الحاكمة تدعم Python ≥3.10 —
 مصفوفة CI تشغّل مسار `latest` ومسار `termux-compat` على pydantic<2 بلا
 اعتماديات مترجمة، ومساحة العمل تتطلب Python ≥3.12 (تثبّت نطاقاتها في
 pyproject الخاص بها). الملف الجذري `.github/workflows/ci.yml` هو بوابة
@@ -259,6 +288,31 @@ pyproject الخاص بها). الملف الجذري `.github/workflows/ci.yml`
 وruff على الطبقتين — ولا يُعد التغيير مقبولاً إلا بأخضر البوابة على
 commit الوسم. كل رقم اختبارات في هذا الملف مرتبط بذلك الخط الموسوم،
 وكل رقم أقدم في أي ملف آخر يُقرأ تاريخياً لا كخط أساس حالي.
+
+### أدلة التشغيل المثبّتة
+
+كل ادعاء CI/اختبارات أعلاه مرتبط بتشغيل ملموس للبوابة لا بمجرّد تصريح:
+
+| الخط الأساسي | الادعاء | الدليل (تشغيل مثبّت) |
+| --- | --- | --- |
+| v0.15.1 | النواة 438/12 · مساحة العمل 366/37 خضراء على بوابة CI · أصول مكتبي ثلاثية الأنظمة | [تشغيل CI 45052350042](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052350042) · [تشغيل الإصدار المكتبي 45052349833](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052349833) عند commit `b9504ea` |
+| v0.16.0 | النواة 446/12 · مساحة العمل 366/37 على بوابة CI | يُثبَّت رابط التشغيل عند الوسم |
+
+### استقلال المرآة الثانية (ADR-0009)
+
+المستودع وCI والإصدارات كلها على GitHub وحده — نقطة فشل واحدة، وإغلاق
+OneGeology بعد 18 عاماً هو الدرس المؤسسي المعاصر. v0.16.0 تُسلّم الآلة لا
+النية فقط: `scripts/mirror_sync.sh` يدفع الفرع الحاكم وكل الوسوم بلا قوة
+تجبرية إلى مضيف ثانٍ يُضبَط بسر `GEOLOGIA_MIRROR_REMOTE_URL`، ويطابق كل
+بصمة تُعلنها المرآة، ثم يستنسخ `scripts/mirror_restore_verify.py`
+**من المرآة نفسها** ويُثبت أن التاريخ المستعاد مطابق بالبصمات قبل تشغيل
+اختبار دخان. مهمة `.github/workflows/mirror.yml` تتخطى نفسها بنظافة
+بإشعار صريح إلى أن يوفّر المالك حساب المرآة — تخطٍّ صادق لا أخضر مزيّف.
+والسلسلة كلها مُختبَرة بلا اتصال طرفاً إلى طرف في
+[tests/test_mirror_independence.py](tests/test_mirror_independence.py)
+بما يشمل كشف وسم محذوف وفرع مُنحرف على المرآة. توقيع الوسوم بPGP يُفعَّل
+يوم توفير مفتاح الإصدار؛ وسوم اليوم موسومة تعليقياً بلا توقيع، والسكربت
+يعلن ذلك العدد بصدق في كل تشغيل.
 
 ### الدعم والتبني والحقوق
 

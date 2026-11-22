@@ -1,0 +1,46 @@
+name: Mirror sync
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+# The second host is optional by design (ADR-0009): without the repository
+# secret the job reports a clean skip instead of failing the gate.
+env:
+  GIT_TERMINAL_PROMPT: "0"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve mirror configuration
+        id: guard
+        env:
+          MIRROR_URL: ${{ secrets.GEOLOGIA_MIRROR_REMOTE_URL }}
+        run: |
+          if [ -z "$MIRROR_URL" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Mirror disabled: set the repository secret GEOLOGIA_MIRROR_REMOTE_URL to activate the second host (ADR-0009)."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync governing branch and tags to the mirror
+        if: steps.guard.outputs.enabled == 'true'
+        env:
+          GEOLOGIA_MIRROR_REMOTE_URL: ${{ secrets.GEOLOGIA_MIRROR_REMOTE_URL }}
+        run: bash scripts/mirror_sync.sh --repo . --branch main
+
+      - name: Restore-verify from the mirror
+        if: steps.guard.outputs.enabled == 'true'
+        env:
+          GEOLOGIA_MIRROR_REMOTE_URL: ${{ secrets.GEOLOGIA_MIRROR_REMOTE_URL }}
+        run: >
+          python scripts/mirror_restore_verify.py --source . --mirror-url
+          "$GEOLOGIA_MIRROR_REMOTE_URL" --suite smoke
