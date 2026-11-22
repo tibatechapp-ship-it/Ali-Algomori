@@ -4,6 +4,8 @@
 
 The local, model-independent chief geoscience agent is **Ali Algomori (علي الگوموري)**. Its current routing and planning core is deterministic and evidence-backed; it is not a trained neural model or a substitute for scientific engines. The current API provides a local workspace for projects, datasets, and durable analysis-plan records. It does not execute scientific engines.
 
+> **Unified repository notice.** This directory is the **workspace layer** of the unified [GEOLOGIA monorepo](https://github.com/tibatechapp-ship-it/Ali-Algomori) (v0.10.0+): the governed intelligence core lives at the repository root, and workspace knowledge ingestion runs through the core's reception gate — the single door. Commands below run from this `workspace/` directory.
+
 ## Current source scope
 
 - FastAPI application and health endpoint.
@@ -144,4 +146,4 @@ Development baseline: Python 3.14.x. Python 3.12 and 3.15 are included in CI com
 
 ## License
 
-Original GEOLOGIA platform code is licensed under **AGPL-3.0-only**; see [LICENSE](LICENSE). Third-party engine licenses are separate and must be verified before each adapter is distributed. The registry's `license_status: unverified` is deliberate until that review is complete.
+Effective with the v0.10.0 unified repository, this workspace layer is distributed under the **GEOLOGIA Proprietary License 1.0** — see [LICENSE](LICENSE) (this directory's licensing notice), and [LICENSE.md](../LICENSE.md) + [NOTICE.md](../NOTICE.md) at the repository root. The Arabic text governs. The former standalone `geologia` repository's AGPLv3 history is preserved there as an archive. Third-party engine licenses are separate and must be verified before each adapter is distributed. The registry's `license_status: unverified` is deliberate until that review is complete.
