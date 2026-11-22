@@ -19,7 +19,7 @@
 > وشركاء مؤسسيين. حقوق الابتكار محفوظة — الاستنساخ والاستخدام التجاري ممنوعان
 > إلا بترخيص كتابي من المالك.
 
-[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.19.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-465_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-463_passing_%2F_7_skipped-8a5fb5) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
+[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.19.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-465_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-408_passing_%2F_41_skipped-8a5fb5) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
 
 ---
 
@@ -130,8 +130,8 @@ installable independently:
 | **Governed core** | `src/geologia` | Reception gate, evidence store, knowledge units & dedup line, knowledge graph, geoid gate, golden eval, audit | `pip install -e .` |
 | **Workspace** | `workspace/` | Local FastAPI workspace: bilingual RTL/LTR UI, Ali deterministic agent (AR/EN/RU/ZH), DEM coverage & readiness with tamper-evident chains, PWA, desktop & Termux launchers | `pip install -e "./workspace[dev,gis]"` |
 
-Reference suites: core **465 passing / 12 skipped**, workspace **463 passing /
-7 skipped** on the CI gate (dev+gis; **470/3** locally with full extras).
+Reference suites: core **465 passing / 12 skipped**, workspace **408 passing /
+41 skipped** on the CI gate (dev+gis; **470/3** locally with full extras).
 Both layers obey
 the same doctrine — evidence first, coded refusals, honest skips — and CI
 success remains an engineering certificate, never a scientific one. Since
@@ -164,6 +164,7 @@ an assertion:
 | v0.16.0 | core 446/12 · workspace 366/37 on the CI gate · mirror workflow honest-skip verified | [CI run 45054712124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712124) · [Mirror sync run 45054712138](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712138) at commit `1f270d7` |
 | v0.17.0 | core 455/12 · workspace 366/37 on the CI gate · evidence-chain attestation shipped (ADR-0010) | [CI run 45057872188](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872188) · [Mirror sync run 45057872124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872124) at commit `bb55c92` |
 | v0.18.0 | core 465/12 · workspace 366/37 on the CI gate · GeoBench-style external alignment shipped (fingerprinted frozen facts + honest comparability) | [CI run 45063202958](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063202958) · [Mirror sync run 45063203120](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063203120) at commit `c6528ee` |
+| v0.19.0 | core 465/12 · workspace 408/41 on the CI gate · verified display gate + offline SVG map + pyproj-free UTM equations shipped | [CI run 45067339358](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339358) · [Mirror sync run 45067339396](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339396) at commit `feaa754` |
 
 ### Second-mirror independence (ADR-0009)
 
@@ -317,7 +318,7 @@ geologia serve --port 8000
 | **مساحة العمل** | `workspace/` | مساحة FastAPI المحلية: واجهة ثنائية اللغة RTL/LTR، وكيل Ali الحتمي (عربي/إنجليزي/روسي/صيني)، تغطية وجاهزية DEM بسلاسل مقاومة للتلاعب، PWA، مشغّلات سطح المكتب وTermux | `pip install -e "./workspace[dev,gis]"` |
 
 المجموعتان المرجعيتان: النواة **465 ناجحاً / 12 تخطياً**، مساحة العمل
-**463 ناجحاً / 7 تخطياً على بوابة CI** (**470/3** محلياً بالإكماليات الكاملة). الطبقتان تخضعان للعقيدة نفسها — الدليل أولاً،
+**408 ناجحاً / 41 تخطياً على بوابة CI** (**470/3** محلياً بالإكماليات الكاملة). الطبقتان تخضعان للعقيدة نفسها — الدليل أولاً،
 رفض مرمز، تخطٍّ صادق — ونجاح CI يبقى شهادة هندسية لا علمية أبداً. ومنذ v0.11.0 ارتبطت الطبقتان عند باب الاستيعاب: كل استيعاب معرفة في مساحة العمل (CLI والبذور) يمر أولاً عبر بوابة الاستقبال في النواة الحاكمة — البايتات المرفوضة لا تُفهرس أبداً، وكل حكم يترك أثراً في سجل المصدر المضاد للتلاعب. الاسترجاع المدعوم بشبكة المعرفة على وحدات النواة يبقى خطوة الربط المعلنة التالية. مستودع `geologia` السابق يبقى أرشيفاً
 لتاريخ مساحة العمل — و[رخصة هذا المستودع](LICENSE.md) تحكم كل ما هنا.
 
@@ -340,6 +341,7 @@ commit الوسم. كل رقم اختبارات في هذا الملف مرتب�
 | v0.16.0 | النواة 446/12 · مساحة العمل 366/37 على بوابة CI · تحقق تخطي المرآة الصادق | [تشغيل CI 45054712124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712124) · [تشغيل مزامنة المرآة 45054712138](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712138) عند commit `1f270d7` |
 | v0.17.0 | النواة 455/12 · مساحة العمل 366/37 على بوابة CI · شهادة سلسلة الأدلة صارت منتجاً (ADR-0010) | [تشغيل CI 45057872188](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872188) · [تشغيل مزامنة المرآة 45057872124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872124) عند commit `bb55c92` |
 | v0.18.0 | النواة 465/12 · مساحة العمل 366/37 على بوابة CI · المحاذاة الخارجية GeoBench-style منشورة (حقائق مجمّدة بالبصمة + جدول صدق) | [تشغيل CI 45063202958](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063202958) · [تشغيل مزامنة المرآة 45063203120](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063203120) عند commit `c6528ee` |
+| v0.19.0 | النواة 465/12 · مساحة العمل 408/41 على بوابة CI · بوابة العرض الموثقة + العارض المحلي البلا تبعيات + معادلات UTM الذهبية | [تشغيل CI 45067339358](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339358) · [تشغيل مزامنة المرآة 45067339396](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339396) عند commit `feaa754` |
 
 ### استقلال المرآة الثانية (ADR-0009)
 

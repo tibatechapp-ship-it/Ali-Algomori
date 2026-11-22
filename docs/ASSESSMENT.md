@@ -22,7 +22,7 @@ corporate README), and the hygiene gap (stray tracked files), and sets the
 measured roadmap for the rest.
 
 Current baseline (v0.19.0): core **465 passing / 12 skipped** on the full
-path, workspace **463 passing / 7 skipped** on the CI gate (**470/3**
+path, workspace **408 passing / 41 skipped** on the CI gate (**470/3**
 locally with full extras), ruff clean on both layers. The GeoBench-style
 external-alignment gap (ض8) is closed: frozen external facts, measured
 internal numbers, and an honest comparability table — see
