@@ -414,3 +414,22 @@ def task_report(task_id: str) -> dict:
             "message": "هذه المهمة لم تُنفذ بعد — لا تقرير أدلة",
         })
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+@app.get("/api/v1/vertical/answer")
+def vertical_answer(lat: float, lon: float, model: str = "EGM96") -> dict:
+    """T4.2: vertical answer behind the agent-level refusal rule.
+
+    No loaded AND independently verified geoid grid => 409 refusal with the
+    coded reason — never an approximate value, never a silent MSL assumption.
+    """
+    from geologia.data_layer.vertical_rule import answer_vertical
+    res = answer_vertical(lat, lon, model)
+    if res["status"] != 200:
+        raise HTTPException(status_code=res["status"], detail={
+            "error": res["error"],
+            "missing": res.get("missing", []),
+            "message_ar": res["message_ar"],
+            "message_en": res["message_en"],
+        })
+    return res

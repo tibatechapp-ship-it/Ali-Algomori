@@ -19,7 +19,7 @@
 > وشركاء مؤسسيين. حقوق الابتكار محفوظة — الاستنساخ والاستخدام التجاري ممنوعان
 > إلا بترخيص كتابي من المالك.
 
-![version](https://img.shields.io/badge/version-0.8.1-3b6e4f) ![tests](https://img.shields.io/badge/tests-389_passing_%2F_12_skipped-2ea44f) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
+![version](https://img.shields.io/badge/version-0.9.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-431_passing_%2F_12_skipped-2ea44f) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
 
 ---
 
@@ -56,6 +56,12 @@ Three principles make it unlike any other platform in its class:
 | Official geodetic registries — EGM96 ↔ EPSG:5773, EGM2008 ↔ EPSG:3855 (PR #7 mirror, 8 acceptance gates recorded, no embedded grid) | Stable |
 | Knowledge foundation — institutions, knowledge-unit schema v1, license×purpose matrix, multilingual terms | Stable (T1) |
 | Frozen golden evaluation — 40 golden + 10 negative + 5 fake references, deterministic audit, 9 agent cards | Stable (T3) |
+| Knowledge-source intake (T2.1) — every external source through the SAME gate, refusals logged like acceptances | Stable |
+| PDF/HTML extraction → candidate knowledge units, short-quote doctrine (T2.2) | Stable |
+| Six-stage deduplication line — evidence accumulates, never deletes; unit harmonization before matching (T2.3) | Stable |
+| Knowledge graph v1 — typed entities, closed relation pairs, no edge without evidence (T2.4) | Stable |
+| Official EGM96/EGM2008 grids ingested through the gate — 8 gates recorded, our-parser vs PROJ crosscheck Δ = 0 m, 25 frozen golden nodes per grid (T4.1) | Stable |
+| Agent-level vertical refusal rule — coded 409 without a loaded AND verified grid; no approximate value, no silent MSL (T4.2) | Stable |
 | Geospatial analysis, 3D modelling, MODFLOW | **Deliberately locked** behind the trusted-data phase ([ROADMAP](docs/ROADMAP.md)) |
 
 ## Quickstart
@@ -71,6 +77,7 @@ geologia knowledge search "من بدأ علم الجيولوجيا في التا
 geologia verify well_log.las --type las
 geologia dataset add "صنعاء بئر-01" well_log.las --dtype las
 geologia task create "porosity" porosity_density_v1 ds-ab12cd34ef56 --param rho_ma_gcm3=2.65
+geologia vertical 15.35 44.2          # geoid undulation — 409 refusal without a verified grid
 geologia serve --port 8000
 ```
 
@@ -160,6 +167,13 @@ GeoAI وGIS، مراجعة علمية). صُممت لتكون رابطاً مع�
   (مرآة PR #7، بوابات القبول الثماني مسجّلة، بلا شبكة مضمّنة).
 - أساس المعرفة T1 والاختبارات الذهبية T3: 40 سؤالاً ذهبياً + 10 سلبية +
   5 مراجع مزيفة، بسكربت تدقيق حتمي وبطاقات للوكلاء التسعة.
+- **مدخل المعرفة T2 (0.9.0)**: كل مصدر خارجي عبر البوابة نفسها، استخراج
+  PDF/HTML إلى وحدات مرشحة باقتباس قصير حرفي، خط جِدّة سداسي يجمع الأدلة
+  ولا يحذف، وشبكة معرفة v1 بلا حافة بلا إثبات.
+- **البوابة الجيويدية T4 (0.9.0)**: الشبكتان الرسميتان EGM96 وEGM2008
+  جرّدتا عبر البوابة نفسها والبوابات الثماني مسجلة، والتحقق المستقل
+  (محللنا مقابل PROJ على نفس البايتات) بتطابق صفر متر، وقاعدة رفض رأسي
+  مرمزة 409 — `geologia vertical LAT LON`.
 - النمذجة ثلاثية الأبعاد والمياه الجوفية **مقفلة عمداً** خلف اكتمال طبقة
   البيانات الموثوقة — انضباط مقصود لا قصور ([خارطة الطريق](docs/ROADMAP.md)).
 

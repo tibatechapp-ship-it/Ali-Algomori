@@ -485,9 +485,11 @@ _TIFF_TYPE_SIZES = {1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8,
                     11: 4, 12: 8}
 _TIFF_REQUIRED_TAGS = {
     256: "ImageWidth", 257: "ImageLength", 258: "BitsPerSample",
-    259: "Compression", 262: "Photometric", 273: "StripOffsets",
-    277: "SamplesPerPixel", 278: "RowsPerStrip", 279: "StripByteCounts",
+    259: "Compression", 262: "Photometric",
+    277: "SamplesPerPixel",
 }
+# Layout tags are decided by the raster layout (strips vs tiles), not
+# required universally — see _check_tiff (v0.9.0).
 _TAG_PIXEL_SCALE = 33550   # GeoTIFF ModelPixelScaleTag
 _TAG_TIEPOINT = 33922      # GeoTIFF ModelTiepointTag
 
@@ -572,30 +574,47 @@ def _check_tiff(path: Path, findings: List[dict]) -> None:
         v = ifd.get(tag)
         return v[0] if v else None
 
+    # v0.9.0: both standard layouts are valid TIFF structures — strips
+    # (273/278/279) and tiles (322/323/324/325). The official PROJ-data
+    # geoid grids (us_nga_egm96_15.tif / us_nga_egm08_25.tif) are tiled, and
+    # a validator that only knows strips refuses real-world grids for no
+    # structural reason. The layout decides which layout tags are required;
+    # the common raster tags are required either way.
+    tiled = 322 in ifd or 323 in ifd
     missing = [name for tag, name in _TIFF_REQUIRED_TAGS.items() if tag not in ifd]
+    if tiled:
+        layout_required = {322: "TileWidth", 323: "TileLength",
+                           324: "TileOffsets", 325: "TileByteCounts"}
+    else:
+        layout_required = {273: "StripOffsets", 278: "RowsPerStrip",
+                           279: "StripByteCounts"}
+    missing += [name for tag, name in layout_required.items() if tag not in ifd]
     if missing:
         findings.append(_finding("TIFF_MISSING_TAG",
                                  f"missing required tags: {', '.join(missing)}"))
     w, h = num(256), num(257)
     bits, comp = num(258), num(259)
     spp = num(277)
-    offsets = ifd.get(273, ())
-    counts = ifd.get(279, ())
+    offsets = ifd.get(324 if tiled else 273, ())
+    counts = ifd.get(325 if tiled else 279, ())
     if comp not in (None, 1):
         findings.append(_finding(
             "TIFF_UNSUPPORTED_COMPRESSION",
             f"compression {comp}: structural check only, raster decode deferred"))
-    if comp == 1 and all(v is not None for v in (w, h, bits, spp)):
+    if (not tiled) and comp == 1 and all(v is not None for v in (w, h, bits, spp)):
         expected = w * h * spp * bits // 8
         if sum(counts) != expected:
             findings.append(_finding(
                 "TIFF_SIZE_MISMATCH",
                 f"strip byte counts sum {sum(counts)} != {w}x{h}x{spp}x{bits}/8 = {expected}"))
+    # Tile byte-count sums may legitimately exceed the exact raster size
+    # (edge tiles are padded to the tile boundary), so the exact-sum check
+    # stays strip-only; the bounds check below applies to both layouts.
     for off, cnt in zip(offsets, counts):
         if off + cnt > file_size:
             findings.append(_finding(
                 "TIFF_TRUNCATED",
-                f"strip at {off}+{cnt} exceeds file size {file_size}"))
+                f"{'tile' if tiled else 'strip'} at {off}+{cnt} exceeds file size {file_size}"))
             break
     if _TAG_PIXEL_SCALE in ifd and _TAG_TIEPOINT in ifd:
         tp = ifd[_TAG_TIEPOINT]

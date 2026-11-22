@@ -110,6 +110,14 @@ def _build_parser() -> argparse.ArgumentParser:
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8000)
 
+    p_ver = sub.add_parser(
+        "vertical",
+        help="geoid undulation behind the T4.2 refusal rule (409 without a verified grid)",
+    )
+    p_ver.add_argument("lat", type=float)
+    p_ver.add_argument("lon", type=float)
+    p_ver.add_argument("--model", default="EGM96")
+
     p_about = sub.add_parser(
         "about",
         help="project status, support appeal, and rights notice (bilingual)",
@@ -292,6 +300,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.command == "about":
         from geologia.about import banner
         print(banner(args.lang))
+        return 0
+
+    if args.command == "vertical":
+        from geologia.data_layer.vertical_rule import answer_vertical
+        res = answer_vertical(args.lat, args.lon, args.model)
+        if res["status"] != 200:
+            print(f"[!] {res['error']} — {res['message_ar']}", file=sys.stderr)
+            return 3
+        _print(res)
         return 0
 
     if args.command == "serve":

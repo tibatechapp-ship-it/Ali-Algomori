@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geologia"
-version = "0.8.1"
+version = "0.9.0"
 description = "GEOLOGIA - bilingual geoscience intelligence platform (foundation)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,7 +16,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7", "httpx>=0.24", "uvicorn>=0.30"]
 lint = ["ruff>=0.5"]
-geo = ["lasio>=0.31", "tifffile>=2023.7", "pyproj>=3.6", "numpy>=1.24"]
+geo = ["lasio>=0.31", "tifffile>=2023.7", "pyproj>=3.6", "numpy>=1.24",
+       "imagecodecs>=2024.1"]
 
 [project.scripts]
 geologia = "geologia.cli:main"

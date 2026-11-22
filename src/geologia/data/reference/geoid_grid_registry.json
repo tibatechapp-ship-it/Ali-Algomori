@@ -1,0 +1,157 @@
+{
+ "schema": "geologia-geoid-grid-registry/1",
+ "generated_at_utc": "2026-11-22T07:37:23Z",
+ "note_ar": "مرآة محلية لبوابة T4.1: الشبكات خارج المستودع وتُقيَّد ببصماتها؛ عند أي اختلاف بين النسخ تُحتكم البصمة لا الاسم.",
+ "note_en": "Local T4.1 gate mirror: grids live outside the repo, pinned by fingerprints; fingerprints arbitrate, not names.",
+ "source_policy": "NGA official origin; OSGeo/PROJ-data documented secondary distribution (see reference_sources.json)",
+ "grids": [
+  {
+   "status": "recorded",
+   "model_id": "EGM96",
+   "source_url": "https://cdn.proj.org/us_nga_egm96_15.tif",
+   "source_format": "geotiff",
+   "file_name": "us_nga_egm96_15.tif",
+   "size_bytes": 2710815,
+   "gates": {
+    "sha256": "db493027562c9b004d7220fa881f5603adada4e1c5029b933fa7de4547b0e78d",
+    "license": {
+     "status": "public_domain",
+     "source": "OSGeo/PROJ-data copyright_and_licenses.csv: us_nga_egm96_15.tif = Disclaimed / Public domain (NGA, US Government product)"
+    },
+    "tide_system": {
+     "value": "tide_free (declared_source_metadata)",
+     "evidence": "NGA source grid naming convention carries the tide system; the converted GeoTIFF itself embeds no tide tag — declared, not re-derived"
+    },
+    "grid_coords": {
+     "south": -90.0,
+     "west": -180.0,
+     "north": 90.0,
+     "east": 179.75,
+     "resolution_deg": 0.25,
+     "nlat": 721,
+     "nlon": 1440
+    },
+    "interpolation": "bilinear (declared; validated against node values and the PROJ crosscheck)",
+    "crs_pair": {
+     "horizontal": "EPSG:4326 (WGS 84)",
+     "vertical": "EPSG:5773"
+    },
+    "validity_domain": {
+     "lat": [
+      -90.0,
+      90.0
+     ],
+     "lon": [
+      -180.0,
+      179.75
+     ],
+     "undulation_m": [
+      -106.9911,
+      85.3909
+     ]
+    },
+    "independent_check": "passed: max |ours - PROJ| = 0.000000 m over 9 interior points"
+   },
+   "grid_stats": {
+    "min_m": -106.9911,
+    "max_m": 85.3909,
+    "finite_nodes": 1038240,
+    "total_nodes": 1038240
+   },
+   "description": "WGS 84 (EPSG:4979) to EGM96 height (EPSG:5773). Converted from egm96_15.gtx (last modified at 2018/10/05)",
+   "crosscheck": {
+    "status": "passed",
+    "points": 9,
+    "max_abs_diff_m": 0.0,
+    "note": "our parser vs PROJ on the same grid bytes; numpy=2.1.3, pyproj=3.7.2"
+   },
+   "findings": [
+    {
+     "code": "GEOID_RECEPTION_ACCEPTED",
+     "severity": "info",
+     "message": "grid entered through the platform reception gate"
+    },
+    {
+     "code": "GEOID_GATES_RECORDED",
+     "severity": "info",
+     "message": "eight geoid gates recorded"
+    }
+   ],
+   "grid_dir_hint": "download/geoid_grids (outside the repo; "
+  },
+  {
+   "status": "recorded",
+   "model_id": "EGM2008",
+   "source_url": "https://cdn.proj.org/us_nga_egm08_25.tif",
+   "source_format": "geotiff",
+   "file_name": "us_nga_egm08_25.tif",
+   "size_bytes": 80585622,
+   "gates": {
+    "sha256": "4191d471eefebf24091b56dbc604353cb3b8cf8cc70e448bb9ae56a272bef17a",
+    "license": {
+     "status": "public_domain",
+     "source": "OSGeo/PROJ-data copyright_and_licenses.csv: us_nga_egm08_25.tif = Disclaimed / Public domain (NGA, US Government product)"
+    },
+    "tide_system": {
+     "value": "tide_free (declared_source_metadata)",
+     "evidence": "NGA source grid naming convention carries the tide system; the converted GeoTIFF itself embeds no tide tag — declared, not re-derived"
+    },
+    "grid_coords": {
+     "south": -90.0,
+     "west": -180.0,
+     "north": 90.0,
+     "east": 179.958333,
+     "resolution_deg": 0.04166667,
+     "nlat": 4321,
+     "nlon": 8640
+    },
+    "interpolation": "bilinear (declared; validated against node values and the PROJ crosscheck)",
+    "crs_pair": {
+     "horizontal": "EPSG:4326 (WGS 84)",
+     "vertical": "EPSG:3855"
+    },
+    "validity_domain": {
+     "lat": [
+      -90.0,
+      90.0
+     ],
+     "lon": [
+      -180.0,
+      179.958333
+     ],
+     "undulation_m": [
+      -106.9087,
+      85.8238
+     ]
+    },
+    "independent_check": "passed: max |ours - PROJ| = 0.000000 m over 9 interior points"
+   },
+   "grid_stats": {
+    "min_m": -106.9087,
+    "max_m": 85.8238,
+    "finite_nodes": 37333440,
+    "total_nodes": 37333440
+   },
+   "description": "WGS 84 (EPSG:4979) to EGM2008 height (EPSG:3855). Converted from egm08_25.gtx (last modified at 2018/10/08)",
+   "crosscheck": {
+    "status": "passed",
+    "points": 9,
+    "max_abs_diff_m": 0.0,
+    "note": "our parser vs PROJ on the same grid bytes; numpy=2.1.3, pyproj=3.7.2"
+   },
+   "findings": [
+    {
+     "code": "GEOID_RECEPTION_ACCEPTED",
+     "severity": "info",
+     "message": "grid entered through the platform reception gate"
+    },
+    {
+     "code": "GEOID_GATES_RECORDED",
+     "severity": "info",
+     "message": "eight geoid gates recorded"
+    }
+   ],
+   "grid_dir_hint": "download/geoid_grids (outside the repo; "
+  }
+ ]
+}
