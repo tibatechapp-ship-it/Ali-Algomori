@@ -106,7 +106,7 @@ def analyze_water_level_timeseries(
 
     original_order = list(timestamps)
     if original_order != sorted(original_order):
-        warnings.append({"code": "timestamps_not_monotonic", "message": "Rows are not in chronological order."})
+        warnings.append({\n            "code": "timestamps_not_monotonic",\n            "message": "Rows are not in chronological order.",\n        })
     unique_times = sorted(set(timestamps))
     duplicate_count = len(timestamps) - len(unique_times)
     if duplicate_count:
@@ -118,7 +118,7 @@ def analyze_water_level_timeseries(
     if timezone_flags == {False}:
         warnings.append({
             "code": "timezone_not_declared",
-            "message": "Naive timestamps have no timezone; time intervals are interpreted as local clock time.",
+            "message": (\n                "Naive timestamps have no timezone; intervals use local clock time."\n            ),
         })
 
     intervals = [
