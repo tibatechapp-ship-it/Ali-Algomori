@@ -2007,6 +2007,263 @@ def dataset_geojson(dataset_id: str) -> JSONResponse:
     return JSONResponse(content=payload)
 
 
+@app.get("/api/v1/datasets/{dataset_id}/display", status_code=200)
+def dataset_display(dataset_id: str) -> dict:
+    """Gated map-display payload bound to the CRS and validation gates.
+
+    Refuses (409) before anything is drawn unless the dataset is structurally
+    validated with ``validation_status == "passed"`` and its stored bytes still
+    match the upload-time SHA-256. The served coordinates are always EPSG:4326;
+    non-geographic declared CRS values are reprojected server-side, with an
+    honest pyproj-free fallback for WGS 84 UTM zones. The response carries a
+    truth classification: structural verification never makes the coordinates
+    scientifically correct.
+    """
+    item = store.get_dataset(dataset_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="dataset not found")
+    if item["format"] not in {"geojson", "json"}:
+        raise HTTPException(
+            status_code=415,
+            detail="display gate supports GeoJSON datasets only",
+        )
+    content_path = store.get_dataset_content_path(dataset_id)
+    if content_path is None or not Path(content_path).is_file():
+        raise HTTPException(status_code=410, detail="dataset file is missing")
+    if not _dataset_content_matches(item, Path(content_path)):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "display.refusal.integrity_mismatch: stored bytes differ from "
+                "the upload-time SHA-256 record; display is refused"
+            ),
+        )
+    report = store.get_dataset_validation(dataset_id)
+    if report is None:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "display.refusal.not_validated: run the structural validation "
+                "endpoint before requesting a map display"
+            ),
+        )
+    if report.get("validation_status") != "passed":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "display.refusal.validation_failed: the latest structural "
+                "validation did not pass; display is refused"
+            ),
+        )
+    try:
+        payload = _read_json(Path(content_path))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail="GeoJSON must be valid UTF-8 JSON with finite numbers",
+        ) from exc
+    try:
+        inspect_geojson(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    declared_crs = item["crs"] or "EPSG:4326"
+    reprojected = False
+    engine = "native_epsg_4326_no_transform"
+    reprojection: dict | None = None
+    if declared_crs.upper() not in {"EPSG:4326", "OGC:CRS84"}:
+        from geologia_workspace.geospatial import reproject_geojson
+
+        try:
+            payload, info = reproject_geojson(payload, declared_crs, "EPSG:4326")
+        except ValueError as exc:
+            message = str(exc)
+            if "vertical or 3D CRS" in message:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "display.refusal.vertical_or_3d_crs: GEOLOGIA performs "
+                        "horizontal 2D display only; " + message
+                    ),
+                ) from exc
+            raise HTTPException(status_code=422, detail=message) from exc
+        except RuntimeError:
+            payload, reprojection, engine = _utm_display_fallback(
+                payload, declared_crs
+            )
+            reprojected = True
+        else:
+            reprojected = True
+            engine = (
+                "pyproj "
+                + str(info.get("tool_versions", {}).get("pyproj", ""))
+            ).strip()
+            reprojection = {
+                "source_crs": info["source_crs"],
+                "target_crs": info["target_crs"],
+                "operation_description": info["operation_description"],
+                "operation_accuracy_m": info["operation_accuracy_m"],
+                "vertical_coordinate_policy": info["vertical_coordinate_policy"],
+            }
+    if isinstance(payload, dict) and payload.get("type") == "FeatureCollection":
+        feature_count = len(payload.get("features") or [])
+    else:
+        feature_count = 1
+    return {
+        "truth_class": "verified_structural",
+        "classification_note": (
+            "Structural validation passed and the served bytes match the "
+            "upload-time SHA-256. This proves structure and integrity only; "
+            "it does not certify that the coordinates are scientifically "
+            "correct positions."
+        ),
+        "dataset_id": dataset_id,
+        "display_crs": "EPSG:4326",
+        "declared_crs": declared_crs,
+        "reprojected": reprojected,
+        "reprojection_engine": engine,
+        "reprojection": reprojection,
+        "feature_count": feature_count,
+        "source_sha256": item["sha256"],
+        "validation": {
+            "status": report.get("validation_status"),
+            "profile": report.get("profile"),
+            "validated_at": report.get("validated_at"),
+            "scientific_interpretation": False,
+        },
+        "geojson": payload,
+    }
+
+
+def _utm_display_fallback(
+    payload: dict, declared_crs: str
+) -> tuple[dict, dict, str]:
+    """pyproj-free EPSG:32[67]xx -> EPSG:4326 display fallback via frozen UTM
+    equations (Snyder 1987 series, tolerance documented in the module)."""
+    import re
+
+    match = re.fullmatch(r"(?i)\s*EPSG:32([67])(\d{2})\s*", declared_crs)
+    if not match:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "display.unavailable_without_pyproj: server-side reprojection "
+                "requires the optional 'gis' extra for this CRS; only WGS 84 "
+                "UTM zones (EPSG:326xx/327xx) have a pyproj-free fallback"
+            ),
+        )
+    zone = int(match.group(2))
+    if not 1 <= zone <= 60:
+        raise HTTPException(
+            status_code=409,
+            detail="display.refusal.utm_zone_out_of_range: zone must be 01..60",
+        )
+    hemisphere = "north" if match.group(1) == "6" else "south"
+    from geologia_workspace.utm_equations import utm_inverse
+
+    def transform_position(position) -> list:
+        if not isinstance(position, list) or len(position) < 2:
+            raise HTTPException(
+                status_code=422,
+                detail="coordinate position must contain at least x and y",
+            )
+        easting, northing = position[0], position[1]
+        if (
+            isinstance(easting, bool)
+            or isinstance(northing, bool)
+            or not isinstance(easting, (int, float))
+            or not isinstance(northing, (int, float))
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail="UTM coordinates must be numeric",
+            )
+        lon, lat = utm_inverse(zone, hemisphere, easting, northing)
+        return [lon, lat, *position[2:]]
+
+    def transform_coordinates(value):
+        if not isinstance(value, list) or not value:
+            raise HTTPException(
+                status_code=422, detail="coordinate arrays must be non-empty"
+            )
+        if isinstance(value[0], (int, float)) and not isinstance(value[0], bool):
+            return transform_position(value)
+        return [transform_coordinates(child) for child in value]
+
+    def transform_geometry(geometry):
+        if geometry is None:
+            return None
+        if not isinstance(geometry, dict):
+            raise HTTPException(
+                status_code=422, detail="geometry must be an object or null"
+            )
+        output = dict(geometry)
+        if output.get("type") == "GeometryCollection":
+            geometries = output.get("geometries")
+            if not isinstance(geometries, list):
+                raise HTTPException(
+                    status_code=422,
+                    detail="GeometryCollection.geometries must be an array",
+                )
+            output["geometries"] = [transform_geometry(item) for item in geometries]
+        else:
+            if "coordinates" not in output:
+                raise HTTPException(
+                    status_code=422, detail="geometry is missing coordinates"
+                )
+            output["coordinates"] = transform_coordinates(output["coordinates"])
+        output.pop("bbox", None)
+        return output
+
+    def transform_object(obj):
+        if not isinstance(obj, dict):
+            raise HTTPException(status_code=422, detail="GeoJSON object expected")
+        output = dict(obj)
+        kind = output.get("type")
+        if kind == "FeatureCollection":
+            features = output.get("features")
+            if not isinstance(features, list):
+                raise HTTPException(
+                    status_code=422,
+                    detail="FeatureCollection.features must be an array",
+                )
+            output["features"] = [transform_object(feature) for feature in features]
+        elif kind == "Feature":
+            output["geometry"] = transform_geometry(output.get("geometry"))
+        elif kind in {"Point", "MultiPoint", "LineString", "MultiLineString",
+                      "Polygon", "MultiPolygon"}:
+            output["coordinates"] = transform_coordinates(output.get("coordinates"))
+        elif kind == "GeometryCollection":
+            output["geometries"] = [
+                transform_geometry(g) for g in output.get("geometries", [])
+            ]
+        else:
+            raise HTTPException(
+                status_code=422, detail="unsupported GeoJSON type for display"
+            )
+        output.pop("bbox", None)
+        output.pop("crs", None)
+        return output
+
+    transformed = transform_object(payload)
+    from geologia_workspace.utm_equations import reference_fingerprint
+
+    info = {
+        "source_crs": declared_crs.upper().strip(),
+        "target_crs": "EPSG:4326",
+        "engine": "pyproj-free UTM fallback (Snyder 1987 equations)",
+        "reference_sha256": reference_fingerprint(),
+        "accuracy_note": (
+            "6th-order series; sub-centimetre agreement with PROJ inside the "
+            "UTM domain per the frozen control points; no vertical conversion"
+        ),
+        "vertical_coordinate_policy": (
+            "third and higher GeoJSON ordinates are preserved unchanged; "
+            "no vertical datum conversion is performed"
+        ),
+    }
+    return transformed, info, "snyder_utm_equations_fallback"
+
+
 @app.post("/api/v1/datasets/{dataset_id}/inspect", status_code=200)
 def dataset_inspect(dataset_id: str) -> dict:
     """Run bounded format-specific inspection; never claim scientific interpretation."""

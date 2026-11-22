@@ -1,4 +1,4 @@
-# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.18.0)
+# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.19.0)
 
 **Honest self-assessment: what we built, what is strong, what is weak, and what
 we are doing about it — measured, not vibes.**
@@ -21,12 +21,16 @@ the governance gap (LICENSE/NOTICE/SUPPORT), the interface gap (bilingual
 corporate README), and the hygiene gap (stray tracked files), and sets the
 measured roadmap for the rest.
 
-Current baseline (v0.18.0): core **465 passing / 12 skipped** on the full
-path, workspace **366 passing / 37 skipped** on the CI gate (**425/3**
+Current baseline (v0.19.0): core **465 passing / 12 skipped** on the full
+path, workspace **463 passing / 7 skipped** on the CI gate (**470/3**
 locally with full extras), ruff clean on both layers. The GeoBench-style
 external-alignment gap (ض8) is closed: frozen external facts, measured
 internal numbers, and an honest comparability table — see
-[EXTERNAL_ALIGNMENT_V1](benchmark/EXTERNAL_ALIGNMENT_V1.md). The strengths and
+[EXTERNAL_ALIGNMENT_V1](benchmark/EXTERNAL_ALIGNMENT_V1.md). Phase 2 is now
+opening the honest way: the verified display gate refuses unvalidated or
+byte-changed layers with classified 409s, the offline SVG map draws only
+what that gate returns, and a pyproj-free UTM equation module with frozen
+golden control points carries the Termux path. The strengths and
 weaknesses below were measured at the historical baseline and are kept as
 the honest record — any claim that moved since carries its update inline.
 
