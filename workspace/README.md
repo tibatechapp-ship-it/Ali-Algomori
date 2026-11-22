@@ -134,7 +134,8 @@ The executable starts the API on `127.0.0.1`, opens the local workspace, and sto
 - `GET /api/v1/crs/inspect?crs=EPSG:4326` (requires optional `gis` extra)
 - `POST /api/v1/datasets/{dataset_id}/reproject` with `{"target_crs":"EPSG:3857"}` (GeoJSON only; creates a derived dataset and preserves the source)
 - `GET /api/v1/agent/status` (local agent identity, capabilities, and model/engine limits)
-- `GET /api/v1/storage/audit` (read-only upload integrity and orphan report)\n- `GET /api/v1/knowledge/status`
+- `GET /api/v1/storage/audit` (read-only upload integrity and orphan report)
+- `GET /api/v1/knowledge/status`
 - `GET /api/v1/knowledge/search?q=groundwater&limit=5` (local reviewed text only)
 - `GET /health`
 - `GET /api/v1/engines` and `GET /api/v1/engines/{engine_id}`
