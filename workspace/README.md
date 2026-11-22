@@ -97,6 +97,26 @@ Open `http://127.0.0.1:8000/docs`.
 
 Default SQLite path: `.geologia/geologia.sqlite3`. Set `GEOLOGIA_DB_PATH` to move it. Default upload directory: `.geologia/uploads`; set `GEOLOGIA_UPLOAD_DIR` to change it.
 
+## Offline application backup and restore
+
+Stop GEOLOGIA and all local writers before creating a coordinated backup:
+
+```bash
+geologia-backup create /path/to/geologia-backup
+```
+
+Restore into a **new, empty path** (existing destinations are never overwritten):
+
+```bash
+geologia-backup restore /path/to/geologia-backup /path/to/geologia-restored
+export GEOLOGIA_DB_PATH=/path/to/geologia-restored/metadata.sqlite3
+export GEOLOGIA_UPLOAD_DIR=/path/to/geologia-restored/uploads
+```
+
+The restored knowledge database is discovered beside the metadata database by default. Restart GEOLOGIA after setting the paths. The bundle includes the metadata database, the optional knowledge database, and all upload files (including orphan files); dataset paths are rewritten during restore. File hashes detect accidental corruption, but the manifest is not signed. Keep backups in a trusted location and maintain your own retention policy.
+
+For a non-destructive storage check, call `GET /api/v1/storage/audit`. It reports missing, changed, unsafe, and orphan files and does not delete anything.
+
 ## Install on phone or desktop
 
 When served from HTTPS or localhost, supported browsers can install GEOLOGIA as a standalone web app or add it to the home screen.
@@ -114,7 +134,7 @@ The executable starts the API on `127.0.0.1`, opens the local workspace, and sto
 - `GET /api/v1/crs/inspect?crs=EPSG:4326` (requires optional `gis` extra)
 - `POST /api/v1/datasets/{dataset_id}/reproject` with `{"target_crs":"EPSG:3857"}` (GeoJSON only; creates a derived dataset and preserves the source)
 - `GET /api/v1/agent/status` (local agent identity, capabilities, and model/engine limits)
-- `GET /api/v1/knowledge/status`
+- `GET /api/v1/storage/audit` (read-only upload integrity and orphan report)\n- `GET /api/v1/knowledge/status`
 - `GET /api/v1/knowledge/search?q=groundwater&limit=5` (local reviewed text only)
 - `GET /health`
 - `GET /api/v1/engines` and `GET /api/v1/engines/{engine_id}`
