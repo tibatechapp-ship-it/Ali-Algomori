@@ -1,0 +1,409 @@
+import csv
+import json
+from datetime import UTC, datetime
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+
+from geologia_workspace.api import app
+from geologia_workspace import store
+
+client = TestClient(app)
+
+
+def _create_project(tmp_path, monkeypatch):
+    monkeypatch.setenv("GEOLOGIA_DB_PATH", str(tmp_path / "accuracy-api.sqlite3"))
+    monkeypatch.setenv("GEOLOGIA_UPLOAD_DIR", str(tmp_path / "uploads"))
+    response = client.post("/api/v1/projects", json={"name": "DEM accuracy evidence"})
+    assert response.status_code == 201
+    return response.json()
+
+
+def _upload(project_id, filename, content, role):
+    return client.post(
+        f"/api/v1/projects/{project_id}/datasets",
+        content=content,
+        headers={
+            "X-Dataset-Name": filename,
+            "X-Filename": filename,
+            "X-Data-Role": role,
+        },
+    )
+
+
+def test_api_computes_and_persists_manifest_bound_dem_accuracy(tmp_path, monkeypatch):
+    rasterio = pytest.importorskip("rasterio")
+    numpy = pytest.importorskip("numpy")
+    from rasterio.transform import from_origin
+
+    project = _create_project(tmp_path, monkeypatch)
+    tile_ids = []
+    tile_hashes = []
+    for filename, left in (("tile-a.tif", 500000), ("tile-b.tif", 500300)):
+        raster_path = tmp_path / filename
+        with rasterio.open(
+            raster_path,
+            "w",
+            driver="GTiff",
+            width=10,
+            height=10,
+            count=1,
+            dtype="float32",
+            crs="EPSG:32638",
+            transform=from_origin(left, 1700000, 30, 30),
+            nodata=-9999,
+        ) as dataset:
+            dataset.write(
+                numpy.full((10, 10), 100, dtype=numpy.float32), 1
+            )
+        uploaded = _upload(
+            project["id"], filename, raster_path.read_bytes(), "dem"
+        )
+        assert uploaded.status_code == 201
+        tile_ids.append(uploaded.json()["id"])
+        tile_hashes.append(uploaded.json()["sha256"])
+
+    aoi_payload = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+                [500000, 1699700],
+                [500600, 1699700],
+                [500600, 1700000],
+                [500000, 1700000],
+                [500000, 1699700],
+            ]],
+        },
+    }
+    aoi = _upload(
+        project["id"],
+        "accuracy-aoi.geojson",
+        json.dumps(aoi_payload).encode("utf-8"),
+        "aoi_boundary",
+    )
+    points = [
+        ("p1", 500015, 1699985, 98),
+        ("p2", 500045, 1699955, 99),
+        ("p3", 500075, 1699925, 100),
+        ("p4", 500105, 1699895, 101),
+    ]
+    reference_path = tmp_path / "reference.csv"
+    with reference_path.open("w", encoding="utf-8", newline="") as target:
+        writer = csv.writer(target)
+        writer.writerow([
+            "point_id", "x", "y", "elevation_m", "terrain_stratum", "uncertainty_m"
+        ])
+        for point in points:
+            writer.writerow([*point, "steep_bare", 0.2])
+    reference = _upload(
+        project["id"],
+        "reference.csv",
+        reference_path.read_bytes(),
+        "reference_elevation_observations",
+    )
+    assert aoi.status_code == 201
+    assert reference.status_code == 201
+    invalid_sidecar = _upload(
+        project["id"],
+        "invalid-uncertainty.json",
+        b'{"schema":"wrong","records":{}}',
+        "reference_uncertainty_sidecar",
+    )
+    assert invalid_sidecar.status_code == 422
+
+    sidecar_payload = {
+        "schema": "geologia.reference-uncertainty.v1",
+        "reference_dataset_sha256": reference.json()["sha256"],
+        "records": {
+            point[0]: {
+                "kind": "standard_uncertainty",
+                "value": 0.15,
+                "unit": "m",
+                "source_reference": "survey-method://gnss-uncertainty-v2",
+                "method": "documented-survey-uncertainty",
+                "scope": "point_specific",
+                "dependence": "unknown",
+                "reviewer": "reviewer-1",
+                "recorded_at": datetime.now(UTC).isoformat(),
+            }
+            for point in points
+        },
+    }
+    sidecar_bytes = json.dumps(sidecar_payload, sort_keys=True).encode("utf-8")
+    sidecar = _upload(
+        project["id"],
+        "reference-uncertainty.json",
+        sidecar_bytes,
+        "reference_uncertainty_sidecar",
+    )
+    assert sidecar.status_code == 201
+    assert sidecar.json()["summary"]["validation"] == "typed_uncertainty_records_validated"
+    assert sidecar.json()["summary"]["record_count"] == len(points)
+
+    manifest_payload = {
+        "schema": "geologia.dem-tile-manifest.v1",
+        "product_version_id": "dem-release-2026-01",
+        "tile_dataset_ids": tile_ids,
+        "tile_dataset_sha256s": tile_hashes,
+    }
+    manifest = _upload(
+        project["id"],
+        "dem-manifest.json",
+        json.dumps(manifest_payload).encode("utf-8"),
+        "dem_tile_manifest",
+    )
+    assert manifest.status_code == 201
+
+    coverage = client.post(
+        f"/api/v1/projects/{project['id']}/dem/tile-collection-coverage-inspection",
+        json={
+            "dem_dataset_ids": tile_ids,
+            "aoi_dataset_id": aoi.json()["id"],
+            "aoi_crs": "EPSG:32638",
+        },
+    )
+    assert coverage.status_code == 200, coverage.text
+    coverage_reference = coverage.json()["coverage_footprint_reference"]
+    reviewed_at = datetime.now(UTC).isoformat()
+
+    request = {
+        "product_manifest_dataset_id": manifest.json()["id"],
+        "reference_dataset_id": reference.json()["id"],
+        "reference_uncertainty_sidecar_dataset_id": sidecar.json()["id"],
+        "aoi_dataset_id": aoi.json()["id"],
+        "metadata": {
+            "product_version_id": "dem-release-2026-01",
+            "dem_vertical_datum": "NAVD88",
+            "reference_vertical_datum": "NAVD88",
+            "dem_vertical_unit": "m",
+            "reference_vertical_unit": "m",
+            "dem_surface_type": "DTM",
+            "reference_surface_type": "DTM",
+            "dem_epoch": "2020",
+            "reference_epoch": "2020",
+            "reference_source_id": "gnss-control-network-1",
+            "reference_release": "release-2026-01",
+            "reference_horizontal_crs": "EPSG:32638",
+            "aoi_crs": "EPSG:32638",
+            "dem_metadata_reference": "metadata://dem/release-1",
+            "reference_metadata_reference": "metadata://reference/release-1",
+            "independence_status": "independent_confirmed",
+            "independence_evidence_reference": "evidence://independence/review-1",
+            "independence_reviewer": "reviewer-1",
+            "independence_reviewed_at": reviewed_at,
+        },
+        "declared_use": {
+            "product_name": "Example DEM",
+            "product_version_id": "dem-release-2026-01",
+            "pilot_area_id": "pilot-1",
+            "task_profile_id": "regional-recon-v1",
+            "intended_user": "geological researcher",
+            "declared_scale": "regional reconnaissance",
+        },
+        "independent_review": {
+            "product_version_id": "dem-release-2026-01",
+            "pilot_area_id": "pilot-1",
+            "task_profile_id": "regional-recon-v1",
+            "reviewer": "reviewer-1",
+            "evidence_reference": "evidence://independence/review-1",
+            "reviewed_at": reviewed_at,
+        },
+        "coverage_footprint_reference": coverage_reference,
+        "requirement": {
+            "metric": "rmse_m",
+            "maximum_value_m": 1.5,
+            "minimum_valid_observations": 4,
+            "requirement_reference": "task-profile://regional-recon-v1/accuracy",
+            "approved_by": "reviewer-1",
+            "frozen_at": reviewed_at,
+        },
+        "created_by": "analyst-1",
+    }
+    saved = client.post(
+        f"/api/v1/projects/{project['id']}/dem/accuracy-assessments",
+        json=request,
+    )
+    assert saved.status_code == 201, saved.text
+    record = saved.json()
+    assert record["assessment"]["accuracy_disposition"] == (
+        "accuracy_requirement_met_for_declared_use"
+    )
+    assert record["assessment"]["metrics"]["rmse_m"] == pytest.approx((1.5) ** 0.5)
+    assert record["assessment"]["readiness_disposition"] == "not_assessed"
+    assert record["assessment"]["reference_uncertainty_sidecar_dataset_id"] == sidecar.json()["id"]
+    assert (
+        record["assessment"]["reference_uncertainty_sidecar_dataset_sha256"]
+        == sidecar.json()["sha256"]
+    )
+    assert (
+        record["assessment"]["reference_uncertainty_summary"]["status"]
+        == "descriptive_metadata_only"
+    )
+    assert record["assessment"]["reference_uncertainty_summary"]["count"] == 4
+
+    mismatched_request = json.loads(json.dumps(request))
+    mismatched_request["independent_review"]["pilot_area_id"] = "pilot-other"
+    mismatched = client.post(
+        f"/api/v1/projects/{project['id']}/dem/accuracy-assessments",
+        json=mismatched_request,
+    )
+    assert mismatched.status_code == 409
+
+    chain = client.get(
+        f"/api/v1/projects/{project['id']}/dem/accuracy-assessments/chain"
+    )
+    assert chain.status_code == 200
+    assert chain.json()["valid"] is True
+    assert chain.json()["record_count"] == 1
+
+    # Coverage is persisted in the AOI dataset summary, not in the source file.
+    # Verify that replacing that stored inspection invalidates the evidence chain.
+    coverage_snapshot = store.get_dataset_coverage_inspection(aoi.json()["id"])
+    changed_coverage = dict(coverage_snapshot)
+    changed_coverage["coverage_footprint_reference"] = "tampered coverage snapshot"
+    store.save_dataset_coverage_inspection(aoi.json()["id"], changed_coverage)
+    changed_coverage_chain = client.get(
+        f"/api/v1/projects/{project['id']}/dem/accuracy-assessments/chain"
+    )
+    assert changed_coverage_chain.status_code == 200
+    changed_chain = changed_coverage_chain.json()
+    assert changed_chain["record_chain_valid"] is True
+    assert changed_chain["dependency_integrity_valid"] is False
+    assert changed_chain["valid"] is False
+    assert {
+        item["code"] for item in changed_chain["dependency_errors"]
+    } == {"coverage_inspection_dependency_integrity_mismatch"}
+    store.save_dataset_coverage_inspection(aoi.json()["id"], coverage_snapshot)
+
+    retrieved = client.get(
+        f"/api/v1/projects/{project['id']}/dem/accuracy-assessments/{record['id']}"
+    )
+    assert retrieved.status_code == 200
+    assert retrieved.json()["record_hash"] == record["record_hash"]
+
+    def available(value):
+        return {"availability": "available", "value": value}
+
+    readiness_context = {
+        "product_version": available("dem-release-2026-01"),
+        "spec_source": available("source product metadata"),
+        "spec_date": available("2026-11-22"),
+        "metric_type": available("vertical elevation"),
+        "vertical_datum": available("NAVD88"),
+        "surface_type": available("DTM"),
+        "actual_coverage": available(coverage_reference),
+        "coverage_status": available("verified"),
+        "spatial_resolution_x": available("30 m"),
+        "spatial_resolution_y": available("30 m"),
+        "validation_status": available("independently_reviewed"),
+    }
+    readiness_request = {
+        "product_manifest_dataset_id": manifest.json()["id"],
+        "declared_use": request["declared_use"],
+        "context": readiness_context,
+        "accuracy_assessment_id": record["id"],
+        "independent_review": request["independent_review"],
+        "created_by": "readiness-reviewer",
+    }
+    readiness = client.post(
+        f"/api/v1/projects/{project['id']}/dem/readiness-assessments",
+        json=readiness_request,
+    )
+    assert readiness.status_code == 201, readiness.text
+    readiness_record = readiness.json()
+    assert readiness_record["assessment"]["disposition"] == "ready_for_declared_use"
+    assert readiness_record["assessment"]["accuracy_assessment_id"] == record["id"]
+
+    sidecar_path = Path(store.get_dataset_content_path(sidecar.json()["id"]))
+    original_sidecar_bytes = sidecar_path.read_bytes()
+    sidecar_path.write_text("{}\n", encoding="utf-8")
+    stale_sidecar_readiness = client.post(
+        f"/api/v1/projects/{project['id']}/dem/readiness-assessments",
+        json=readiness_request,
+    )
+    assert stale_sidecar_readiness.status_code == 409
+
+    tampered_accuracy_chain = client.get(
+        f"/api/v1/projects/{project['id']}/dem/accuracy-assessments/chain"
+    )
+    assert tampered_accuracy_chain.status_code == 200
+    tampered_chain = tampered_accuracy_chain.json()
+    assert tampered_chain["record_chain_valid"] is True
+    assert tampered_chain["dependency_integrity_valid"] is False
+    assert tampered_chain["valid"] is False
+    assert tampered_chain["dependency_errors"] == [
+        {
+            "record_id": record["id"],
+            "code": "reference_uncertainty_sidecar_integrity_mismatch",
+        }
+    ]
+    # Restore the sidecar so the following readiness-chain baseline is valid.
+    sidecar_path.write_bytes(original_sidecar_bytes)
+
+    without_accuracy = dict(readiness_request)
+    without_accuracy.pop("accuracy_assessment_id")
+    not_evaluable = client.post(
+        f"/api/v1/projects/{project['id']}/dem/readiness-assessments",
+        json=without_accuracy,
+    )
+    assert not_evaluable.status_code == 201, not_evaluable.text
+    assert not_evaluable.json()["assessment"]["disposition"] == "not_evaluable"
+
+    readiness_chain = client.get(
+        f"/api/v1/projects/{project['id']}/dem/readiness-assessments/chain"
+    )
+    assert readiness_chain.status_code == 200
+    assert readiness_chain.json()["valid"] is True
+    assert readiness_chain.json()["record_count"] == 2
+    assert readiness_chain.json()["dependency_integrity_valid"] is True
+    assert readiness_chain.json()["accuracy_chain_checked"] is True
+    assert readiness_chain.json()["accuracy_chain_valid"] is True
+
+    # A readiness record must not remain "valid" after its source manifest
+    # changes, even though its own append-only record hash is unchanged.
+    manifest_path = Path(store.get_dataset_content_path(manifest.json()["id"]))
+    original_manifest_bytes = manifest_path.read_bytes()
+    manifest_path.write_bytes(b"tampered manifest after readiness assessment")
+    broken_readiness_chain = client.get(
+        f"/api/v1/projects/{project['id']}/dem/readiness-assessments/chain"
+    )
+    assert broken_readiness_chain.status_code == 200
+    broken_chain = broken_readiness_chain.json()
+    assert broken_chain["record_chain_valid"] is True
+    assert broken_chain["dependency_integrity_valid"] is False
+    assert broken_chain["accuracy_chain_valid"] is False
+    assert broken_chain["valid"] is False
+    assert any(
+        item["code"] == "product_manifest_dependency_integrity_mismatch"
+        for item in broken_chain["dependency_errors"]
+    )
+    manifest_path.write_bytes(original_manifest_bytes)
+
+    def dependency_error_codes():
+        response = client.get(
+            f"/api/v1/projects/{project['id']}/dem/accuracy-assessments/chain"
+        )
+        assert response.status_code == 200
+        return {
+            item["code"] for item in response.json()["dependency_errors"]
+        }
+
+    reference_path = Path(store.get_dataset_content_path(reference.json()["id"]))
+    reference_path.write_bytes(b"tampered reference bytes")
+    assert "reference_dataset_integrity_mismatch" in dependency_error_codes()
+
+    aoi_path = Path(store.get_dataset_content_path(aoi.json()["id"]))
+    aoi_path.write_bytes(b"tampered AOI bytes")
+    assert "aoi_dataset_integrity_mismatch" in dependency_error_codes()
+
+    tile_path = Path(store.get_dataset_content_path(tile_ids[0]))
+    tile_path.write_bytes(b"tampered DEM tile bytes")
+    assert "dem_tile_dataset_integrity_mismatch" in dependency_error_codes()
+
+    manifest_path = Path(store.get_dataset_content_path(manifest.json()["id"]))
+    manifest_path.write_bytes(b"tampered manifest bytes")
+    assert "product_manifest_dataset_integrity_mismatch" in dependency_error_codes()
+
