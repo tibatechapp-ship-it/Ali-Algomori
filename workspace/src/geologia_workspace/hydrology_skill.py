@@ -129,7 +129,7 @@ def analyze_water_level_timeseries(
         for earlier, later in zip(unique_times, unique_times[1:])
     ]
     positive_intervals = [seconds for seconds in intervals if seconds > 0]
-    median_interval = statistics.median(positive_intervals) if positive_intervals else None
+    # Lower median prevents one long outage from inflating the gap baseline.\n    median_interval = (\n        statistics.median_low(positive_intervals) if positive_intervals else None\n    )
     gap_threshold = median_interval * 3 if median_interval is not None else None
     gaps = [
         seconds for seconds in positive_intervals
