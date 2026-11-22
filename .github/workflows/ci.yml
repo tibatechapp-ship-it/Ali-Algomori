@@ -28,7 +28,7 @@ jobs:
       - name: Compile
         run: python -m compileall -q src tests
       - name: Tests
-        run: pytest -q
+        run: python -m pytest -q
 
   workspace:
     name: workspace (geologia-workspace)
