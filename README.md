@@ -151,7 +151,7 @@ an assertion:
 | Baseline | Claim | Evidence (pinned run) |
 | --- | --- | --- |
 | v0.15.1 | core 438/12 · workspace 366/37 green on the CI gate · tri-platform desktop assets | [CI run 45052350042](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052350042) · [Desktop Release run 45052349833](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052349833) at commit `b9504ea` |
-| v0.16.0 | core 446/12 · workspace 366/37 on the CI gate | run link pinned at release tagging |
+| v0.16.0 | core 446/12 · workspace 366/37 on the CI gate · mirror workflow honest-skip verified | [CI run 45054712124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712124) · [Mirror sync run 45054712138](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712138) at commit `1f270d7` |
 
 ### Second-mirror independence (ADR-0009)
 
@@ -296,7 +296,7 @@ commit الوسم. كل رقم اختبارات في هذا الملف مرتب�
 | الخط الأساسي | الادعاء | الدليل (تشغيل مثبّت) |
 | --- | --- | --- |
 | v0.15.1 | النواة 438/12 · مساحة العمل 366/37 خضراء على بوابة CI · أصول مكتبي ثلاثية الأنظمة | [تشغيل CI 45052350042](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052350042) · [تشغيل الإصدار المكتبي 45052349833](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052349833) عند commit `b9504ea` |
-| v0.16.0 | النواة 446/12 · مساحة العمل 366/37 على بوابة CI | يُثبَّت رابط التشغيل عند الوسم |
+| v0.16.0 | النواة 446/12 · مساحة العمل 366/37 على بوابة CI · تحقق تخطي المرآة الصادق | [تشغيل CI 45054712124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712124) · [تشغيل مزامنة المرآة 45054712138](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712138) عند commit `1f270d7` |
 
 ### استقلال المرآة الثانية (ADR-0009)
 
