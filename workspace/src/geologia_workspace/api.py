@@ -44,6 +44,7 @@ from geologia_workspace.dem_readiness.manifest import DEMTileManifest
 from geologia_workspace.dem_readiness.thresholds import FROZEN_V1_THRESHOLDS
 from geologia_workspace import __version__
 from geologia_workspace import knowledge, store
+from geologia_workspace.storage_audit import audit_upload_storage
 from geologia_workspace.planner import agent_status, build_plan
 from geologia_workspace.registry import get_engine, list_engines
 from geologia_workspace.runtime import parse_port
@@ -1637,6 +1638,15 @@ def engine_detail(engine_id: str) -> dict:
     if card is None:
         raise HTTPException(status_code=404, detail="engine not found")
     return card
+
+
+@app.get("/api/v1/storage/audit")
+def storage_audit_get() -> dict:
+    """Return a read-only integrity/orphan report for local upload storage."""
+    try:
+        return audit_upload_storage()
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/projects")
