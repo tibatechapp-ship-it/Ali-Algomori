@@ -168,25 +168,33 @@ an assertion:
 | v0.17.0 | core 455/12 · workspace 366/37 on the CI gate · evidence-chain attestation shipped (ADR-0010) | [CI run 45057872188](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872188) · [Mirror sync run 45057872124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872124) at commit `bb55c92` |
 | v0.18.0 | core 465/12 · workspace 366/37 on the CI gate · GeoBench-style external alignment shipped (fingerprinted frozen facts + honest comparability) | [CI run 45063202958](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063202958) · [Mirror sync run 45063203120](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063203120) at commit `c6528ee` |
 | v0.19.0 | core 465/12 · workspace 408/41 on the CI gate · verified display gate + offline SVG map + pyproj-free UTM equations shipped | [CI run 45067339358](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339358) · [Mirror sync run 45067339396](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339396) at commit `feaa754` |
+| v0.20.0 | core 485/12 on both matrix paths (read from the job logs) · workspace 431/41 on the CI gate (408 historical + 23 new tests, reconciled by the documented procedure; job log tail truncated by the runner, job success is the gate evidence) · CRS-from-content + bounded analysis Workers + the SECOND MIRROR ACTIVE: real sync + restore-verify, `PASS branch=main@4b4fc52 tags=15`, honest signed-tag state 0/15 (ADR-0009 declaration) | [CI run 45072102077](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45072102077) · [Mirror sync run 45072101993](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45072101993) at commit `4b4fc52` |
 
-### Second-mirror independence (ADR-0009)
+### Second-mirror independence (ADR-0009) — ACTIVE since v0.20.0
 
 The repository, CI and releases live on GitHub alone — a single-host failure
 point, and the closure of OneGeology after 18 years is the recent
-institutional lesson. v0.16.0 ships the machinery, not just the intent:
+institutional lesson. v0.16.0 shipped the machinery, not just the intent:
 `scripts/mirror_sync.sh` pushes the governing branch and all tags
 fast-forward-only to a second host configured via the
 `GEOLOGIA_MIRROR_REMOTE_URL` repository secret, then matches every reported
 hash, and `scripts/mirror_restore_verify.py` clones **from the mirror** and
 proves the restored history is hash-identical before running a smoke suite.
-The `.github/workflows/mirror.yml` job skips cleanly with a notice until the
-owner provisions the mirror account — an honest skip, not a fake green. The
-whole chain is tested offline end-to-end in
+**v0.20.0 activates the second host on the owner's decision**: the private
+`Ali-Algomori-mirror` repository lives on the owner account, the secret is
+set (encrypted), and the CI run at `4b4fc52` performed the first real sync
++ restore-verify — `PASS branch=main@4b4fc52 tags=15` — replacing the
+honest skip that had been the truthful state until a host existed. One
+operational lesson is recorded in the workflow itself: `actions/checkout`
+injects an auth extraheader bound to the workflow GITHUB_TOKEN, which
+cannot see the mirror repo and answered "Repository not found" until the
+workflow drops that header so the secret-URL credentials win. The whole
+chain is tested offline end-to-end in
 [tests/test_mirror_independence.py](tests/test_mirror_independence.py),
 including a deleted tag and a diverged mirror branch being caught. Tag
 signing (PGP) activates the day a release key is provisioned; today's tags
 are annotated and unsigned, and the sync script reports that count honestly
-on every run.
+on every run (0/15 at `4b4fc52`).
 
 ### Reproducible attestation (ADR-0010)
 
@@ -347,22 +355,29 @@ commit الوسم. كل رقم اختبارات في هذا الملف مرتب�
 | v0.17.0 | النواة 455/12 · مساحة العمل 366/37 على بوابة CI · شهادة سلسلة الأدلة صارت منتجاً (ADR-0010) | [تشغيل CI 45057872188](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872188) · [تشغيل مزامنة المرآة 45057872124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872124) عند commit `bb55c92` |
 | v0.18.0 | النواة 465/12 · مساحة العمل 366/37 على بوابة CI · المحاذاة الخارجية GeoBench-style منشورة (حقائق مجمّدة بالبصمة + جدول صدق) | [تشغيل CI 45063202958](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063202958) · [تشغيل مزامنة المرآة 45063203120](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45063203120) عند commit `c6528ee` |
 | v0.19.0 | النواة 465/12 · مساحة العمل 408/41 على بوابة CI · بوابة العرض الموثقة + العارض المحلي البلا تبعيات + معادلات UTM الذهبية | [تشغيل CI 45067339358](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339358) · [تشغيل مزامنة المرآة 45067339396](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45067339396) عند commit `feaa754` |
+| v0.20.0 | النواة 485/12 على مساري المصفوفة (مقروء من سجلات المهام) · مساحة العمل 431/41 على بوابة CI (408 تاريخية + 23 اختباراً جديداً معاد إنتاجها بالإجراء الموثق؛ ذيل سجل المهام اقتطعه العدّاء، ونجاح المهمة هو دليل البوابة) · الاكتشاف من المحتوى + Workers تحليلية مقيّدة + **المرآة الثانية منشّطة**: مزامنة حقيقية + استعادة-تحقق، `PASS branch=main@4b4fc52 tags=15`، حالة التوقيع الصادقة 0/15 (إعلان ADR-0009) | [تشغيل CI 45072102077](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45072102077) · [تشغيل مزامنة المرآة 45072101993](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45072101993) عند commit `4b4fc52` |
 
-### استقلال المرآة الثانية (ADR-0009)
+### استقلال المرآة الثانية (ADR-0009) — منشّطة منذ v0.20.0
 
 المستودع وCI والإصدارات كلها على GitHub وحده — نقطة فشل واحدة، وإغلاق
-OneGeology بعد 18 عاماً هو الدرس المؤسسي المعاصر. v0.16.0 تُسلّم الآلة لا
+OneGeology بعد 18 عاماً هو الدرس المؤسسي المعاصر. v0.16.0 سلّمت الآلة لا
 النية فقط: `scripts/mirror_sync.sh` يدفع الفرع الحاكم وكل الوسوم بلا قوة
 تجبرية إلى مضيف ثانٍ يُضبَط بسر `GEOLOGIA_MIRROR_REMOTE_URL`، ويطابق كل
 بصمة تُعلنها المرآة، ثم يستنسخ `scripts/mirror_restore_verify.py`
 **من المرآة نفسها** ويُثبت أن التاريخ المستعاد مطابق بالبصمات قبل تشغيل
-اختبار دخان. مهمة `.github/workflows/mirror.yml` تتخطى نفسها بنظافة
-بإشعار صريح إلى أن يوفّر المالك حساب المرآة — تخطٍّ صادق لا أخضر مزيّف.
-والسلسلة كلها مُختبَرة بلا اتصال طرفاً إلى طرف في
+اختبار دخان. **v0.20.0 تُنشّط المضيف الثاني بقرار المالك**: مستودع
+المرآة الخاص `Ali-Algomori-mirror` على حساب المالك، والسر مضبوط مشفراً،
+وتشغيل CI عند `4b4fc52` نفّذ أول مزامنة حقيقية + استعادة-تحقق —
+`PASS branch=main@4b4fc52 tags=15` — بدل التخطي الصادق الذي كان الحالة
+الصادقة إلى حين وجود مضيف. درس تشغيلي واحد مسجّل في سير العمل نفسه:
+`actions/checkout` يحقن ترويسة توثيق مرتبطة برمز GITHUB_TOKEN الذي لا يرى
+مستودع المرآة وكان يجيب «Repository not found» إلى أن يزيل سير العمل
+تلك الترويسة لتغلب اعتمادات URL السر. والسلسلة كلها مُختبَرة بلا اتصال
+طرفاً إلى طرف في
 [tests/test_mirror_independence.py](tests/test_mirror_independence.py)
 بما يشمل كشف وسم محذوف وفرع مُنحرف على المرآة. توقيع الوسوم بPGP يُفعَّل
 يوم توفير مفتاح الإصدار؛ وسوم اليوم موسومة تعليقياً بلا توقيع، والسكربت
-يعلن ذلك العدد بصدق في كل تشغيل.
+يعلن ذلك العدد بصدق في كل تشغيل (0/15 عند `4b4fc52`).
 
 ### الشهادة القابلة لإعادة التوليد (ADR-0010)
 
