@@ -19,7 +19,7 @@
 > وشركاء مؤسسيين. حقوق الابتكار محفوظة — الاستنساخ والاستخدام التجاري ممنوعان
 > إلا بترخيص كتابي من المالك.
 
-[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.19.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-465_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-408_passing_%2F_41_skipped-8a5fb5) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
+[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.20.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-485_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-431_passing_%2F_41_skipped-8a5fb5) ![mirror](https://img.shields.io/badge/mirror-active_ADR--0009-0969da) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
 
 ---
 
@@ -44,7 +44,7 @@ Three principles make it unlike any other platform in its class:
    knowledge layer cites or refuses, and third-party engines are refused at the
    code level until they pass a full certification lifecycle.
 
-## What works today (v0.19.0)
+## What works today (v0.20.0)
 
 | Capability | Status |
 | --- | --- |
@@ -67,6 +67,9 @@ Three principles make it unlike any other platform in its class:
 | Verified display gate `GET /api/v1/datasets/{id}/display` — refuses unvalidated or byte-changed layers with classified 409s, serves EPSG:4326 with a truth-class envelope, server-side reprojection with a declared engine | Stable (Phase 2, gate-bound) |
 | Offline SVG map view — dependency-free (no CDN, no tile servers), graticule + pan/zoom + feature info, draws only what the gated endpoint returns | Stable (Phase 2, offline-first) |
 | pyproj-free UTM equations — Snyder 1987 series + 16 frozen golden control points (Yemen zones 38N/39N included), fingerprinted reference, pyproj crosscheck, 0.74 mm measured in-zone forward error | Stable |
+| CRS detection from actual content (0.20.0) — magnitude class + RFC 7946 WGS84 range at the core intake gate (`CRS_CONTENT_DETECTED`), declared-vs-content resolution with an explicit truth class on every statement | Stable (Phase 2, gate-bound) |
+| Reference-matched spatial analysis via bounded Workers (0.20.0) — declared-UTM-zone plausibility through the frozen inverse equations in a bounded pool with classified refusals (`analysis.refusal.*`), display refuses implausible content with `display.refusal.crs_content_mismatch`, dedicated `/crs-content-verify` envelope; honest limit carried on every verdict: a zone NUMBER is not falsifiable from easting/northing alone | Stable (Phase 2, worker-bound) |
+| Independence mirror — second host ACTIVE (ADR-0009, owner decision): real sync + restore-verify from the mirror inside the same CI run | Stable (P0) |
 | Geospatial analysis beyond validated display, 3D modelling, MODFLOW | **Deliberately locked** behind the trusted-data phase ([ROADMAP](docs/ROADMAP.md)) |
 
 ## Quickstart
@@ -130,8 +133,8 @@ installable independently:
 | **Governed core** | `src/geologia` | Reception gate, evidence store, knowledge units & dedup line, knowledge graph, geoid gate, golden eval, audit | `pip install -e .` |
 | **Workspace** | `workspace/` | Local FastAPI workspace: bilingual RTL/LTR UI, Ali deterministic agent (AR/EN/RU/ZH), DEM coverage & readiness with tamper-evident chains, PWA, desktop & Termux launchers | `pip install -e "./workspace[dev,gis]"` |
 
-Reference suites: core **465 passing / 12 skipped**, workspace **408 passing /
-41 skipped** on the CI gate (dev+gis; **470/3** locally with full extras).
+Reference suites: core **485 passing / 12 skipped**, workspace **431 passing /
+41 skipped** on the CI gate (dev+gis; **490/3** locally with full extras).
 Both layers obey
 the same doctrine — evidence first, coded refusals, honest skips — and CI
 success remains an engineering certificate, never a scientific one. Since
@@ -143,7 +146,7 @@ knowledge units remains the declared next binding step. The former standalone
 `geologia` repository remains as the workspace archive — this repository's
 [LICENSE.md](LICENSE.md) governs everything here.
 
-**Python & CI baseline (v0.19.0):** the governed core supports Python
+**Python & CI baseline (v0.20.0):** the governed core supports Python
 ≥3.10 — the CI matrix runs a `latest` path and a `termux-compat` path on
 pydantic<2 without compiled dependencies; the workspace layer requires
 Python ≥3.12 (its `pyproject.toml` pins exact ranges). The root
@@ -251,7 +254,7 @@ GeoAI وGIS، مراجعة علمية). صُممت لتكون رابطاً مع�
 5. عزل المحركات: لا بيئة Python واحدة تجمع كل الاعتماديات، ونجاح CI ليس
    شهادة صحة النتائج الجيولوجية.
 
-### ما يعمل الآن (v0.19.0)
+### ما يعمل الآن (v0.20.0)
 
 - نواة API + مخطط حتمي لتسعة مجالات، وبوابة استقبال آمنة (حدود حجم، تفتيش
   بايتات سحرية، أمان أرشيفات بلا استخراج، تعقيم أسماء بعلامات bidi)، ونقطة
@@ -274,6 +277,8 @@ GeoAI وGIS، مراجعة علمية). صُممت لتكون رابطاً مع�
 - **الشهادة القابلة لإعادة التوليد (0.17.0، [ADR-0010](docs/adr/0010-reproducible-attestation.md))**: `geologia certify` بلا معرّف محرك يتحقق من سلسلة الأدلة كاملة — بصمة حاكمة مشتقة من المحتوى وحده لـ 33 أصلاً إثباتياً معلناً (أُضيف أصل المحاذاة الخارجية في 0.18.0) + بصمتي المجموعة الذهبية الداخليتين، مقابل مرجع مثبت داخل الشجرة؛ عبث أو حذف أو إضافة غير معلنة تُكشف بلا اتصال، والبصمة متطابقة عبر نظامين مستقلين.
 - **المحاذاة الخارجية GeoBench-style (0.18.0)**: حقائق GeoBench المنشورة مجمّدة في ملف موثق بالبصمة (183 + 1,395 سؤالاً موضوعياً، 939 تحليلياً، بلا نسخ سؤال واحد)، وأرقامنا الداخلية مقاسة بالتدقيق الحتمي نفسه الذي تشغّله CI (بوابة الرفض 1.0)، وجدول قابلية مقارنة عشر الصفوف يعلن بصدق أين نتطابق وأين يقود المعيار الخارجي (45.8× حجم) — [التقرير](docs/benchmark/EXTERNAL_ALIGNMENT_V1.md).
 - **العرض الموثق المربوط ببوابة CRS (0.19.0، بداية المرحلة 2)**: نقطة `GET /api/v1/datasets/{id}/display` ترفض برمجياً (409 مصنّف) أي طبقة غير متحقق منها بنيوياً أو غيّرت بايتاتها، وتخدم EPSG:4326 بمغلّف تصنيف حقيقة وحدود معلنة؛ عارض خريطة SVG محلي بلا أي تبعية شبكية (بلا CDN ولا بلاطات) يرسم ما تعيده البوابة فقط؛ ومعادلات UTM خالية من pyproj بعقد ذهبية مجمّدة (يمنية في 38N/39N) وبديل تحويل صادق لمسار Termux دون اتصال.
+- **الاكتشاف من المحتوى الفعلي والتحليل المطابق لمرجع عبر Workers (0.20.0، تكملة المرحلة 2)**: مستقبِل الطبقة الأساسية يصنّف فئة الإحداثيات من المقدار ويكشف مدى WGS84 لـ RFC 7946 ويصدر حكم `CRS_CONTENT_DETECTED` بتصنيف حقيقة صريح على كل رفع CSV/GeoJSON؛ وبركة Workers تحليلية مقيّدة (رفض امتلاء ومهلة مصنّفان) تتحقق من معقولية النطاق المعلن عبر الرياضيات العكسية المجمّدة، وبوابة العرض ترفض 409 مصنّفاً أي محتوى غير معقول تحت إعلان UTM بدل خريطة خاطئة صامتة، ونقطة `/crs-content-verify` تعيد المغلّف الكامل — والحد الصادق معلن على كل حكم: رقم النطاق لا يُكذّب من الإحداثية الشرقية والشمالية وحدهما (درس صنعاء).
+- **المرآة الثانية منشّطة (0.20.0، [ADR-0009](docs/adr/0009-mirror-independence.md)، قرار المالك)**: مزامنة حقيقية + استعادة-تحقق من المرآة في نفس تشغيل CI بدل التخطي الصادق المنتظر.
 - النمذجة ثلاثية الأبعاد والمياه الجوفية **مقفلة عمداً** خلف اكتمال طبقة
   البيانات الموثوقة — انضباط مقصود لا قصور ([خارطة الطريق](docs/ROADMAP.md)).
 
@@ -317,12 +322,12 @@ geologia serve --port 8000
 | **النواة الحاكمة** | `src/geologia` | بوابة الاستقبال، مخزن الأدلة، وحدات المعرفة وخط الجِدّة، شبكة المعرفة، بوابة الجيود، الاختبارات الذهبية | `pip install -e .` |
 | **مساحة العمل** | `workspace/` | مساحة FastAPI المحلية: واجهة ثنائية اللغة RTL/LTR، وكيل Ali الحتمي (عربي/إنجليزي/روسي/صيني)، تغطية وجاهزية DEM بسلاسل مقاومة للتلاعب، PWA، مشغّلات سطح المكتب وTermux | `pip install -e "./workspace[dev,gis]"` |
 
-المجموعتان المرجعيتان: النواة **465 ناجحاً / 12 تخطياً**، مساحة العمل
-**408 ناجحاً / 41 تخطياً على بوابة CI** (**470/3** محلياً بالإكماليات الكاملة). الطبقتان تخضعان للعقيدة نفسها — الدليل أولاً،
+المجموعتان المرجعيتان: النواة **485 ناجحاً / 12 تخطياً**، مساحة العمل
+**431 ناجحاً / 41 تخطياً على بوابة CI** (**490/3** محلياً بالإكماليات الكاملة). الطبقتان تخضعان للعقيدة نفسها — الدليل أولاً،
 رفض مرمز، تخطٍّ صادق — ونجاح CI يبقى شهادة هندسية لا علمية أبداً. ومنذ v0.11.0 ارتبطت الطبقتان عند باب الاستيعاب: كل استيعاب معرفة في مساحة العمل (CLI والبذور) يمر أولاً عبر بوابة الاستقبال في النواة الحاكمة — البايتات المرفوضة لا تُفهرس أبداً، وكل حكم يترك أثراً في سجل المصدر المضاد للتلاعب. الاسترجاع المدعوم بشبكة المعرفة على وحدات النواة يبقى خطوة الربط المعلنة التالية. مستودع `geologia` السابق يبقى أرشيفاً
 لتاريخ مساحة العمل — و[رخصة هذا المستودع](LICENSE.md) تحكم كل ما هنا.
 
-**خط أساس Python وCI (v0.19.0):** النواة الحاكمة تدعم Python ≥3.10 —
+**خط أساس Python وCI (v0.20.0):** النواة الحاكمة تدعم Python ≥3.10 —
 مصفوفة CI تشغّل مسار `latest` ومسار `termux-compat` على pydantic<2 بلا
 اعتماديات مترجمة، ومساحة العمل تتطلب Python ≥3.12 (تثبّت نطاقاتها في
 pyproject الخاص بها). الملف الجذري `.github/workflows/ci.yml` هو بوابة

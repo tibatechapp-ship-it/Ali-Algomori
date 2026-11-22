@@ -1,4 +1,4 @@
-# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.19.0)
+# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.20.0)
 
 **Honest self-assessment: what we built, what is strong, what is weak, and what
 we are doing about it — measured, not vibes.**
@@ -21,16 +21,30 @@ the governance gap (LICENSE/NOTICE/SUPPORT), the interface gap (bilingual
 corporate README), and the hygiene gap (stray tracked files), and sets the
 measured roadmap for the rest.
 
-Current baseline (v0.19.0): core **465 passing / 12 skipped** on the full
-path, workspace **408 passing / 41 skipped** on the CI gate (**470/3**
+Current baseline (v0.20.0): core **485 passing / 12 skipped** on the full
+path, workspace **431 passing / 41 skipped** on the CI gate (**490/3**
 locally with full extras), ruff clean on both layers. The GeoBench-style
 external-alignment gap (ض8) is closed: frozen external facts, measured
 internal numbers, and an honest comparability table — see
-[EXTERNAL_ALIGNMENT_V1](benchmark/EXTERNAL_ALIGNMENT_V1.md). Phase 2 is now
-opening the honest way: the verified display gate refuses unvalidated or
-byte-changed layers with classified 409s, the offline SVG map draws only
-what that gate returns, and a pyproj-free UTM equation module with frozen
-golden control points carries the Termux path. The strengths and
+[EXTERNAL_ALIGNMENT_V1](benchmark/EXTERNAL_ALIGNMENT_V1.md). Phase 2
+continues the honest way (0.19.0 → 0.20.0): the verified display gate
+refuses unvalidated or byte-changed layers with classified 409s, the
+offline SVG map draws only what that gate returns, the pyproj-free UTM
+equation module carries the Termux path — and in 0.20.0 CRS detection from
+actual content (magnitude class + RFC 7946 range + declared-vs-content
+resolution with an explicit truth class) lands at the core intake gate,
+while reference-matched spatial analysis runs in bounded analysis workers
+with classified refusals, the display gate refuses implausible content
+under a UTM declaration (`display.refusal.crs_content_mismatch`), a
+dedicated `/crs-content-verify` endpoint returns the full envelope, and
+the honest limit is carried on every verdict: a UTM zone NUMBER is not
+falsifiable from (easting, northing) alone — the Sana'a 44.2°E lesson —
+so confirming the label needs an independent geographic anchor (next
+documented step). The second mirror is ACTIVE (ADR-0009 owner decision):
+real sync + restore-verify from the mirror inside the same CI run, and
+the community standards (bilingual issue/PR templates, dependabot,
+branch protection, squash-only merges, Discussions) now match the
+declared bar. The strengths and
 weaknesses below were measured at the historical baseline and are kept as
 the honest record — any claim that moved since carries its update inline.
 

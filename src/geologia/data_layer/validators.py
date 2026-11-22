@@ -77,6 +77,10 @@ F = {
     "CRS_DECLARED_OK": "info",
     "CRS_AXIS_ORDER_NOTE": "info",
     "CRS_NONE_DECLARED": "info",
+    # v0.20.0: content-side CRS detection (governing sequence step 4) —
+    # an info statement of what the content itself proves; contradictions
+    # keep firing the existing error-level mismatch codes.
+    "CRS_CONTENT_DETECTED": "info",
 }
 
 VALID_TYPES = ("las", "geojson", "csv", "tiff", "auto")
@@ -84,6 +88,35 @@ VALID_TYPES = ("las", "geojson", "csv", "tiff", "auto")
 
 def _finding(code: str, message: str) -> Dict[str, str]:
     return {"code": code, "severity": F[code], "message": message}
+
+
+def _content_detection_finding(points, declared_crs: Optional[str]) -> dict:
+    """Content-side CRS detection statement (v0.20.0, governing sequence
+    step 4: detection from the actual content, not from the announcement).
+
+    Bounded by construction (crs_content caps the sample). The resolved
+    truth class is embedded in the message so the record carries the
+    classification on every output path. Zero new error codes: contradiction
+    findings stay owned by the existing CRS_MISMATCH_* / GEOJSON_BAD_COORDS
+    error codes; this finding states what content proves.
+    """
+    from geologia.data_layer.crs_content import (
+        MAX_SAMPLE_POINTS_DEFAULT,
+        classify_content_points,
+        resolve_declared_vs_content,
+    )
+    detection = classify_content_points(
+        points, max_points=MAX_SAMPLE_POINTS_DEFAULT)
+    final, codes = resolve_declared_vs_content(
+        detection["detected_class"], detection["truth_class"], declared_crs)
+    msg = (f"content detection: detected_class={detection['detected_class']} "
+           f"truth_class={final} n_points={detection['n_points_checked']} "
+           f"geo={detection.get('n_geographic')} "
+           f"utm={detection.get('n_utm')} "
+           f"unknown={detection.get('n_unknown')} "
+           f"ambiguous={detection.get('n_ambiguous')} "
+           f"resolution={'+'.join(codes)}")
+    return _finding("CRS_CONTENT_DETECTED", msg)
 
 
 def detect_type(path: Path) -> Optional[str]:
@@ -349,6 +382,21 @@ def _check_geojson(path: Path, findings: List[dict],
     if not features:
         findings.append(_finding("GEOJSON_NO_FEATURES", "no features found"))
         return
+    # v0.20.0 content detection: collect a bounded coordinate sample across
+    # ALL features (collection stops at the sample cap, never reads the
+    # whole geometry tree unbounded).
+    from geologia.data_layer.crs_content import MAX_SAMPLE_POINTS_DEFAULT
+    content_points = []
+    for feat in features:
+        geom = feat.get("geometry") or {}
+        if geom.get("type") not in _GEOM_TYPES:
+            continue
+        for pt in _flatten_points(geom.get("coordinates")):
+            content_points.append(pt)
+            if len(content_points) >= MAX_SAMPLE_POINTS_DEFAULT:
+                break
+        if len(content_points) >= MAX_SAMPLE_POINTS_DEFAULT:
+            break
     for i, feat in enumerate(features):
         geom = feat.get("geometry") or {}
         gtype = geom.get("type")
@@ -367,6 +415,7 @@ def _check_geojson(path: Path, findings: List[dict],
     if "crs" not in doc and declared_crs is None:
         findings.append(_finding(
             "GEOJSON_NO_CRS", "no crs member: RFC 7946 assumes WGS84 — record the assumption"))
+    findings.append(_content_detection_finding(content_points, declared_crs))
     findings.append(_finding("GEOJSON_OK", f"{len(features)} feature(s) structurally checked"))
 
 
@@ -475,6 +524,29 @@ def _check_csv(path: Path, findings: List[dict], declared_crs: Optional[str] = N
                                  f"{id_conflicts} conflicting row(s) share an identifier "
                                  f"with different data"))
     _check_crs_csv(declared_crs, declared_units, lat_vals, lon_vals, en_vals, findings)
+    # v0.20.0 content detection: pair coordinates by the named columns and
+    # state what the content itself proves. Convention recorded in the
+    # finding: (lon, lat) when lat/lon columns exist, else (x, y) as the
+    # first two UTM-named columns in header order.
+    content_pairs = []
+    if lat_i is not None and lon_i is not None:
+        content_pairs = list(zip(lon_vals, lat_vals))
+    elif len(en_i) >= 2:
+        col_vals: Dict[int, List[float]] = {j: [] for j in en_i[:2]}
+        for row in data_rows:
+            if len(row) != len(header):
+                continue
+            for j in col_vals:
+                cell = row[j].strip() if j < len(row) else ""
+                if cell.lower() in _NULL_SENTINELS:
+                    continue
+                try:
+                    col_vals[j].append(float(cell))
+                except ValueError:
+                    pass
+        n = min(len(col_vals[en_i[0]]), len(col_vals[en_i[1]]))
+        content_pairs = list(zip(col_vals[en_i[0]][:n], col_vals[en_i[1]][:n]))
+    findings.append(_content_detection_finding(content_pairs, declared_crs))
     findings.append(_finding("CSV_OK",
                              f"{len(header)} columns, {len(data_rows)} rows, "
                              f"numeric cols: {sorted(numeric_cols)}"))

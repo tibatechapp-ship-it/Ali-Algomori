@@ -2067,6 +2067,63 @@ def dataset_display(dataset_id: str) -> dict:
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     declared_crs = item["crs"] or "EPSG:4326"
+    # v0.20.0 — CRS detection from actual content (governing sequence step 4):
+    # a declared UTM zone is tested for plausibility and self-consistency
+    # against the content itself through the frozen UTM inverse equations,
+    # run in a bounded analysis worker. Garbage under a UTM declaration
+    # (degree-like magnitudes, implausible eastings) becomes a classified
+    # refusal instead of a silently wrong map. Honest limit: a zone NUMBER
+    # is not falsifiable from (easting, northing) alone — the verdict notes
+    # carry that limit explicitly.
+    zone_verification = None
+    from geologia_workspace.crs_content import (
+        MAX_SAMPLE_POINTS_DEFAULT,
+        extract_geojson_positions,
+        parse_utm_epsg,
+    )
+    utm_decl = parse_utm_epsg(declared_crs)
+    if utm_decl is not None:
+        pairs = extract_geojson_positions(
+            payload, max_points=MAX_SAMPLE_POINTS_DEFAULT)
+        if pairs:
+            from geologia_workspace.analysis_workers import (
+                AnalysisRefused,
+                get_analysis_workers,
+            )
+            from geologia_workspace.crs_content import (
+                verify_utm_zone_from_content,
+            )
+            zone, hemisphere = utm_decl
+            try:
+                zone_verification = get_analysis_workers().submit_analysis(
+                    verify_utm_zone_from_content,
+                    pairs,
+                    zone,
+                    hemisphere=hemisphere,
+                )["result"]
+            except AnalysisRefused as exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        f"display.unavailable.analysis_pool: {exc.code}: "
+                        f"{exc.detail}"
+                    ),
+                ) from exc
+            if zone_verification["truth_class"] in (
+                    "contradicted_declared", "undetermined"):
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "display.refusal.crs_content_mismatch: declared "
+                        f"UTM zone {zone} does not hold against the "
+                        "content itself (verdict "
+                        f"{zone_verification['verdict_code']}, suggested "
+                        f"zone {zone_verification.get('suggested_zone')}, "
+                        "band "
+                        f"{zone_verification.get('declared_band')}); "
+                        "drawing would place coordinates in the wrong zone"
+                    ),
+                )
     reprojected = False
     engine = "native_epsg_4326_no_transform"
     reprojection: dict | None = None
@@ -2122,6 +2179,13 @@ def dataset_display(dataset_id: str) -> dict:
         "reprojected": reprojected,
         "reprojection_engine": engine,
         "reprojection": reprojection,
+        "crs_content_verification": (
+            {"verdict_code": zone_verification["verdict_code"],
+             "truth_class": zone_verification["truth_class"],
+             "declared_zone": zone_verification.get("declared_zone"),
+             "n_points_checked": zone_verification.get("n_points_checked")}
+            if zone_verification else None
+        ),
         "feature_count": feature_count,
         "source_sha256": item["sha256"],
         "validation": {
@@ -2131,6 +2195,136 @@ def dataset_display(dataset_id: str) -> dict:
             "scientific_interpretation": False,
         },
         "geojson": payload,
+    }
+
+
+@app.post("/api/v1/datasets/{dataset_id}/crs-content-verify", status_code=200)
+def dataset_crs_content_verify(dataset_id: str) -> dict:
+    """Content-side CRS verification via bounded analysis workers.
+
+    Governing sequence step 4 (Phase 2): «اكتشاف CRS من المحتوى الفعلي لا من
+    الإعلان، ثم التحليل المكاني المطابق لمرجع عبر Workers». The dataset bytes
+    are re-verified against the upload-time SHA-256 first (the same gate as
+    display), a bounded coordinate sample is classified by magnitude, and a
+    declared UTM zone is tested for plausibility and self-consistency
+    against the content through the frozen UTM inverse equations inside the
+    worker pool. Honest limit carried on every verdict: a zone NUMBER is not
+    falsifiable from (easting, northing) alone — confirming the label needs
+    an independent geographic anchor (the Sana'a 44.2°E lesson). The envelope
+    carries the loudest honest truth class; content verification never
+    certifies that real-world coordinates are scientifically correct
+    positions.
+    """
+    item = store.get_dataset(dataset_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="dataset not found")
+    if item["format"] not in {"geojson", "json"}:
+        raise HTTPException(
+            status_code=415,
+            detail="content-side CRS verification supports GeoJSON datasets "
+                   "(the magnitude heuristics and the UTM inverse math are "
+                   "defined on GeoJSON payloads; CSV/TIFF carry their own "
+                   "reader-level checks)",
+        )
+    content_path = store.get_dataset_content_path(dataset_id)
+    if content_path is None or not Path(content_path).is_file():
+        raise HTTPException(status_code=410, detail="dataset file is missing")
+    if not _dataset_content_matches(item, Path(content_path)):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "crs_verify.refusal.integrity_mismatch: stored bytes differ "
+                "from the upload-time SHA-256 record; verification refused"
+            ),
+        )
+    try:
+        payload = _read_json(Path(content_path))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail="GeoJSON must be valid UTF-8 JSON with finite numbers",
+        ) from exc
+    try:
+        inspect_geojson(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    from geologia_workspace.analysis_workers import (
+        AnalysisRefused,
+        get_analysis_workers,
+    )
+    from geologia_workspace.crs_content import (
+        MAX_SAMPLE_POINTS_DEFAULT,
+        detect_coordinate_class,
+        extract_geojson_positions,
+        loudest_truth,
+        parse_utm_epsg,
+        verify_utm_zone_from_content,
+    )
+
+    pairs = extract_geojson_positions(payload,
+                                      max_points=MAX_SAMPLE_POINTS_DEFAULT)
+    detection = detect_coordinate_class(pairs)
+    declared_crs = item["crs"]
+    zone_verification = None
+    truth_parts: list[str] = []
+    if declared_crs is None:
+        truth_parts.append("declared_unverified")
+        if pairs:
+            truth_parts.append(str(detection["truth_class"]))
+    else:
+        utm_decl = parse_utm_epsg(declared_crs)
+        if utm_decl is not None and pairs:
+            zone, hemisphere = utm_decl
+            try:
+                zone_verification = get_analysis_workers().submit_analysis(
+                    verify_utm_zone_from_content,
+                    pairs,
+                    zone,
+                    hemisphere=hemisphere,
+                )["result"]
+            except AnalysisRefused as exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        f"crs_verify.unavailable.analysis_pool: {exc.code}: "
+                        f"{exc.detail}"
+                    ),
+                ) from exc
+            truth_parts.append(str(zone_verification["truth_class"]))
+            truth_parts.append(str(detection["truth_class"]))
+        else:
+            # Non-UTM declaration: the magnitude class is checked against
+            # the declared kind (geographic vs projected).
+            declared_upper = declared_crs.upper()
+            is_geographic_decl = declared_upper in {"EPSG:4326", "OGC:CRS84"}
+            detected_class = str(detection["detected_class"])
+            if not pairs:
+                truth_parts.append("declared_unverified")
+            elif is_geographic_decl and detected_class == "utm_projected_metres":
+                truth_parts.append("contradicted_declared")
+            elif is_geographic_decl and detected_class == "geographic_degrees":
+                truth_parts.append("verified_content")
+            elif (not is_geographic_decl
+                  and detected_class == "geographic_degrees"):
+                truth_parts.append("contradicted_declared")
+            else:
+                truth_parts.append("undetermined")
+    return {
+        "truth_class": loudest_truth(*truth_parts),
+        "classification_note": (
+            "Content-side magnitude classification and, for declared UTM "
+            "zones, inverse-math zone verification against a frozen "
+            "reference. This never certifies that the coordinates are "
+            "scientifically correct real-world positions."
+        ),
+        "dataset_id": dataset_id,
+        "declared_crs": declared_crs,
+        "n_positions_sampled": len(pairs),
+        "content_detection": detection,
+        "zone_verification": zone_verification,
+        "executed_in": "analysis_worker",
+        "source_sha256": item["sha256"],
     }
 
 
