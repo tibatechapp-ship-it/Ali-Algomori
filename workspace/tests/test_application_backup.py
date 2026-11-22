@@ -55,7 +55,9 @@ def test_application_backup_round_trip_restores_databases_and_rewrites_paths(
     assert (restored / "uploads" / "survey.blob").read_bytes() == b"stored geological dataset"
     assert (restored / "uploads" / "unregistered.blob").read_bytes() == b"keep orphan too"
     with closing(sqlite3.connect(restored / "metadata.sqlite3")) as conn:
-        path = conn.execute("SELECT content_path FROM datasets WHERE id=?", (item["id"],)).fetchone()[0]
+        path = conn.execute(
+            "SELECT content_path FROM datasets WHERE id=?", (item["id"],)
+        ).fetchone()[0]
         assert path == str(restored / "uploads" / "survey.blob")
     with closing(sqlite3.connect(restored / "knowledge.sqlite3")) as conn:
         assert conn.execute("SELECT value FROM notes").fetchone()[0] == "knowledge snapshot"
@@ -91,3 +93,19 @@ def test_restore_refuses_existing_destination(tmp_path, monkeypatch):
     destination.mkdir()
     with pytest.raises(FileExistsError):
         restore_application_backup(backup, destination)
+
+
+def test_restore_rejects_path_traversal_in_manifest(tmp_path, monkeypatch):
+    _setup(tmp_path, monkeypatch)
+    backup = tmp_path / "backup"
+    create_application_backup(backup)
+    manifest_path = backup / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    dataset_id = next(iter(manifest["datasets"]))
+    manifest["datasets"][dataset_id] = "../escape.blob"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    destination = tmp_path / "restore-attempt"
+    with pytest.raises(ValueError, match="unsafe backup path"):
+        restore_application_backup(backup, destination)
+    assert not destination.exists()
