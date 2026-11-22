@@ -106,7 +106,10 @@ def analyze_water_level_timeseries(
 
     original_order = list(timestamps)
     if original_order != sorted(original_order):
-        warnings.append({\n            "code": "timestamps_not_monotonic",\n            "message": "Rows are not chronological.",\n        })
+        warnings.append({
+            "code": "timestamps_not_monotonic",
+            "message": "Rows are not chronological.",
+        })
     unique_times = sorted(set(timestamps))
     duplicate_count = len(timestamps) - len(unique_times)
     if duplicate_count:
