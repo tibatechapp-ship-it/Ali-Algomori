@@ -46,6 +46,7 @@ from geologia_workspace import __version__
 from geologia_workspace import knowledge, store
 from geologia_workspace.storage_audit import audit_upload_storage
 from geologia_workspace.planner import agent_status, build_plan
+from geologia_workspace.skill_evaluation import evaluate_routing_benchmark
 from geologia_workspace.registry import get_engine, list_engines
 from geologia_workspace.runtime import parse_port
 from geologia_workspace.vector import inspect_csv, inspect_geojson
@@ -1559,6 +1560,12 @@ def dem_coverage_assessment_get(project_id: str, assessment_id: str) -> dict:
 def agent_status_endpoint() -> dict:
     """Expose the model-independent local agent's declared capabilities."""
     return agent_status()
+
+
+@app.get("/api/v1/agent/skills/evaluation")
+def agent_skill_evaluation_endpoint() -> dict:
+    """Run the deterministic offline skill-routing regression benchmark."""
+    return evaluate_routing_benchmark()
 
 
 @app.get("/api/v1/knowledge/status")
