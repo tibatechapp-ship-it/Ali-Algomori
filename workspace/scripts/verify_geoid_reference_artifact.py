@@ -39,7 +39,8 @@ def _numeric_rows(stream: Iterable[str]):
         fields = stripped.split()
         if len(fields) != 5:
             raise ReferenceArtifactError(
-                f"line {line_number}: expected 5 whitespace-separated numeric columns, got {len(fields)}"
+                f"line {line_number}: expected 5 whitespace-separated numeric "
+                f"columns, got {len(fields)}"
             )
         try:
             values = tuple(float(field) for field in fields)
@@ -51,7 +52,9 @@ def _numeric_rows(stream: Iterable[str]):
         if not -90.0 <= latitude <= 90.0:
             raise ReferenceArtifactError(f"line {line_number}: latitude outside [-90, 90]")
         if not -180.0 <= longitude <= 360.0:
-            raise ReferenceArtifactError(f"line {line_number}: longitude outside accepted source range")
+            raise ReferenceArtifactError(
+                f"line {line_number}: longitude outside accepted source range"
+            )
         yield values
 
 

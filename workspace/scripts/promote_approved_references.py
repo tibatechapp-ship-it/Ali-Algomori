@@ -65,7 +65,9 @@ def main() -> int:
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     updated, count = promote(inbox, registry)
     if count:
-        REGISTRY.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        REGISTRY.write_text(
+            json.dumps(updated, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
     print(f"Promoted {count} explicitly approved bibliographic references")
     return 0
 
