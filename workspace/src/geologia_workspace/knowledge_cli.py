@@ -1,9 +1,15 @@
-"""CLI for local, reviewed scientific text and built-in core notes."""
+"""CLI for local, reviewed scientific text and built-in core notes.
+
+Ingestion goes through the governed core's single reception gate
+(`geologia_workspace.knowledge_gate`): refused sources are never indexed,
+and every verdict — including a refusal — leaves a provenance trace.
+"""
 import argparse
 import json
 import sqlite3
 
-from geologia_workspace.knowledge import ingest_document, search, seed_core_knowledge
+from geologia_workspace.knowledge import search, seed_core_knowledge
+from geologia_workspace.knowledge_gate import GATE_STATUS_REFUSED, gate_ingest_document
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -110,9 +116,21 @@ def main(argv: list[str] | None = None) -> None:
             "scientific_review_date": args.scientific_review_date,
         }
         try:
-            result = ingest_document(args.path, metadata)
+            raw = gate_ingest_document(args.path, metadata)
         except (ValueError, OSError, sqlite3.Error) as exc:
             parser.error(str(exc))
+        if raw["status"] == GATE_STATUS_REFUSED:
+            result = {
+                "status": "refused_by_gate",
+                "indexed": False,
+                "declared_name": raw["gate"].get("declared_name"),
+                "gate_findings": raw["gate"].get("findings", []),
+            }
+        else:
+            result = dict(raw["indexed"])
+            result["gate_status"] = raw["gate"]["status"]
+            result["gate_source_id"] = raw["gate"].get("source_id")
+            result["ingestion"] = "single_door_via_core_gate"
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

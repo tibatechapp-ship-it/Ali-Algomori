@@ -12,6 +12,7 @@ def local_index(tmp_path, monkeypatch):
     monkeypatch.setenv("GEOLOGIA_DB_PATH", str(tmp_path / "application.sqlite3"))
     monkeypatch.delenv("GEOLOGIA_KNOWLEDGE_DB_PATH", raising=False)
     monkeypatch.setenv("GEOLOGIA_DISABLE_CORE_SEED", "1")
+    monkeypatch.setenv("GEOLOGIA_DATA_DIR", str(tmp_path / "corestore"))
     knowledge.initialize()
     return tmp_path
 

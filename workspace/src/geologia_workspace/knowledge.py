@@ -14,6 +14,9 @@ import sqlite3
 from urllib.parse import urlparse
 from uuid import uuid4
 
+from geologia.knowledge.intake import STATUS_REJECTED
+from geologia_workspace.knowledge_gate import gate_verdict
+
 MAX_SOURCE_BYTES = 20 * 1024 * 1024
 MAX_PDF_PAGES = 500
 MAX_PDF_PAGE_TEXT_CHARS = 200_000
@@ -746,15 +749,31 @@ def seed_core_knowledge() -> dict:
 
     seeded = []
     already_present = []
+    gate_refused = []
     for filename, source_id, title, language in CORE_SEEDS:
         if source_id in existing:
             already_present.append(source_id)
             continue
         source_path = CORE_SEED_DIR / filename
         source_url = (
-            "https://github.com/tibatechapp-ship-it/geologia/blob/main/"
-            f"src/geologia_workspace/data/knowledge_seed/{filename}"
+            "https://github.com/tibatechapp-ship-it/Ali-Algomori/blob/main/"
+            f"workspace/src/geologia_workspace/data/knowledge_seed/{filename}"
         )
+        gate = gate_verdict(
+            source_path,
+            source_url=source_url,
+            license_status="original_work",
+            notes="core seed checklist authored in-repo",
+        )
+        if gate.get("status") == STATUS_REJECTED:
+            gate_refused.append(
+                {
+                    "source_id": source_id,
+                    "codes": [f["code"] for f in gate.get("findings", [])
+                              if f.get("severity") == "error"],
+                }
+            )
+            continue
         result = ingest_document(
             source_path,
             {
@@ -763,7 +782,7 @@ def seed_core_knowledge() -> dict:
                 "author": "GEOLOGIA Core Knowledge Team",
                 "publisher": "GEOLOGIA",
                 "source_url": source_url,
-                "license_name": "GEOLOGIA original content; repository AGPL-3.0",
+                "license_name": "GEOLOGIA original content; GEOLOGIA Proprietary License 1.0",
                 "license_status": "original_work",
                 "reviewed_by": "GEOLOGIA core knowledge editorial",
                 "review_date": "2026-11-21",
@@ -780,6 +799,8 @@ def seed_core_knowledge() -> dict:
     return {
         "seeded_count": len(seeded),
         "already_present_count": len(already_present),
+        "gate_refused_count": len(gate_refused),
+        "gate_refused": gate_refused,
         "source_count": len(CORE_SEEDS),
         "source_ids": [source_id for _, source_id, _, _ in CORE_SEEDS],
         "external_downloads": 0,

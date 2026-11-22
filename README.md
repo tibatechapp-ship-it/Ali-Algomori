@@ -19,7 +19,7 @@
 > وشركاء مؤسسيين. حقوق الابتكار محفوظة — الاستنساخ والاستخدام التجاري ممنوعان
 > إلا بترخيص كتابي من المالك.
 
-[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.10.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-431_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-287_passing_%2F_40_skipped-8a5fb5) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
+[![CI](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml/badge.svg)](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-0.11.0-3b6e4f) ![tests](https://img.shields.io/badge/tests-431_passing_%2F_12_skipped-2ea44f) ![workspace](https://img.shields.io/badge/workspace_tests-291_passing_%2F_40_skipped-8a5fb5) ![license](https://img.shields.io/badge/license-GEOLOGIA_Proprietary_1.0-d9534f) ![python](https://img.shields.io/badge/python-%E2%89%A53.10-3776ab) ![i18n](https://img.shields.io/badge/i18n-%D8%B9%D8%B1%D8%A8%D9%8A%20%2F%20English-blue)
 
 ---
 
@@ -121,13 +121,17 @@ installable independently:
 | **Governed core** | `src/geologia` | Reception gate, evidence store, knowledge units & dedup line, knowledge graph, geoid gate, golden eval, audit | `pip install -e .` |
 | **Workspace** | `workspace/` | Local FastAPI workspace: bilingual RTL/LTR UI, Ali deterministic agent (AR/EN/RU/ZH), DEM coverage & readiness with tamper-evident chains, PWA, desktop & Termux launchers | `pip install -e "./workspace[dev,gis]"` |
 
-Reference suites: core **431 passing / 12 skipped**, workspace **287 passing /
-40 skipped**. Both layers obey the same doctrine — evidence first, coded
-refusals, honest skips — and CI success remains an engineering certificate,
-never a scientific one. The workspace layer does not yet route its retrieval
-through the core's knowledge gates; binding the two is the declared next major
-step. The former standalone `geologia` repository remains as the workspace
-archive — this repository's [LICENSE.md](LICENSE.md) governs everything here.
+Reference suites: core **431 passing / 12 skipped**, workspace **291 passing /
+40 skipped** (workspace CI gate installs the governed core). Both layers obey
+the same doctrine — evidence first, coded refusals, honest skips — and CI
+success remains an engineering certificate, never a scientific one. Since
+v0.11.0 the two layers are bound at the ingestion door: every workspace
+knowledge ingestion (CLI and core seeds) passes the governed core's reception
+gate first — refused bytes are never indexed, and every verdict leaves a
+hash-chained provenance trace. Graph-backed retrieval over the core's
+knowledge units remains the declared next binding step. The former standalone
+`geologia` repository remains as the workspace archive — this repository's
+[LICENSE.md](LICENSE.md) governs everything here.
 
 ## Where GEOLOGIA stands globally
 
@@ -233,10 +237,8 @@ geologia serve --port 8000
 | **مساحة العمل** | `workspace/` | مساحة FastAPI المحلية: واجهة ثنائية اللغة RTL/LTR، وكيل Ali الحتمي (عربي/إنجليزي/روسي/صيني)، تغطية وجاهزية DEM بسلاسل مقاومة للتلاعب، PWA، مشغّلات سطح المكتب وTermux | `pip install -e "./workspace[dev,gis]"` |
 
 المجموعتان المرجعيتان: النواة **431 ناجحاً / 12 تخطياً**، مساحة العمل
-**287 ناجحاً / 40 تخطياً**. الطبقتان تخضعان للعقيدة نفسها — الدليل أولاً،
-رفض مرمز، تخطٍّ صادق — ونجاح CI يبقى شهادة هندسية لا علمية أبداً. طبقة
-مساحة العمل لم تُمرِّر استرجاعها بعد عبر بوابات المعرفة في النواة؛ ربطهما
-هو الخطوة الكبرى المعلنة التالية. مستودع `geologia` السابق يبقى أرشيفاً
+**291 ناجحاً / 40 تخطياً** (بوابة CI لمساحة العمل تثبت النواة الحاكمة أولاً). الطبقتان تخضعان للعقيدة نفسها — الدليل أولاً،
+رفض مرمز، تخطٍّ صادق — ونجاح CI يبقى شهادة هندسية لا علمية أبداً. ومنذ v0.11.0 ارتبطت الطبقتان عند باب الاستيعاب: كل استيعاب معرفة في مساحة العمل (CLI والبذور) يمر أولاً عبر بوابة الاستقبال في النواة الحاكمة — البايتات المرفوضة لا تُفهرس أبداً، وكل حكم يترك أثراً في سجل المصدر المضاد للتلاعب. الاسترجاع المدعوم بشبكة المعرفة على وحدات النواة يبقى خطوة الربط المعلنة التالية. مستودع `geologia` السابق يبقى أرشيفاً
 لتاريخ مساحة العمل — و[رخصة هذا المستودع](LICENSE.md) تحكم كل ما هنا.
 
 ### الدعم والتبني والحقوق
