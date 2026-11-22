@@ -1,7 +1,12 @@
 """Tests for Ali's auditable specialist competency profiles."""
 import pytest
+
 from geologia_workspace.planner import SUPPORTED_DOMAINS, build_plan
-from geologia_workspace.skills import (\n    DOMAIN_SKILLS, assess_skill_readiness, get_domain_skill_profile,\n)
+from geologia_workspace.skills import (
+    DOMAIN_SKILLS,
+    assess_skill_readiness,
+    get_domain_skill_profile,
+)
 
 
 def test_skill_contract_covers_every_planner_domain():
@@ -9,7 +14,8 @@ def test_skill_contract_covers_every_planner_domain():
     for domain in SUPPORTED_DOMAINS:
         profile = get_domain_skill_profile(domain)
         assert profile["competencies"] and profile["required_inputs"]
-        assert profile["outputs"] and profile["verification"] and profile["safety_limits"]
+        assert profile["outputs"] and profile["verification"]
+        assert profile["safety_limits"]
         assert profile["model_training_claim"] is False
         assert profile["engine_execution_claim"] is False
 
@@ -51,7 +57,9 @@ def test_profiles_are_defensive_copies():
 def test_plans_include_skill_readiness_but_no_execution_claim():
     plan = build_plan("Groundwater and GIS mapping", language="en")
     skills = plan["agent_skill_readiness"]
-    assert {item["domain"] for item in skills["domain_profiles"]} == {"hydrology", "gis"}
+    assert {item["domain"] for item in skills["domain_profiles"]} == {
+        "hydrology", "gis"
+    }
     assert skills["readiness_status"] == "not_assessed"
     assert skills["training_status"] == "no_neural_training_performed"
     assert plan["no_results_computed"] is True
