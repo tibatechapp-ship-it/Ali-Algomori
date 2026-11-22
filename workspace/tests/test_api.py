@@ -493,3 +493,64 @@ def test_modified_dataset_bytes_are_rejected_before_inspection_and_reads(tmp_pat
     assert [event["event_type"] for event in provenance["events"]] == [
         "dataset_ingested"
     ]
+
+
+def test_hydrology_skill_runs_only_on_registered_integrity_checked_dataset(
+    tmp_path, monkeypatch
+):
+    database = tmp_path / "db.sqlite3"
+    upload_root = tmp_path / "uploads"
+    monkeypatch.setenv("GEOLOGIA_DB_PATH", str(database))
+    monkeypatch.setenv("GEOLOGIA_UPLOAD_DIR", str(upload_root))
+    project = client.post(
+        "/api/v1/projects", json={"name": "Hydrology skill", "language": "en"}
+    ).json()
+    csv_bytes = (
+        b"timestamp,water_level_m\n"
+        b"2026-01-01T00:00:00Z,10.0\n"
+        b"2026-01-02T00:00:00Z,11.0\n"
+        b"2026-01-03T00:00:00Z,12.0\n"
+    )
+    uploaded = client.post(
+        f"/api/v1/projects/{project['id']}/datasets",
+        content=csv_bytes,
+        headers={
+            "X-Dataset-Name": "Water levels",
+            "X-Filename": "levels.csv",
+            "X-Data-Role": "water_levels_timeseries",
+        },
+    )
+    assert uploaded.status_code == 201
+    dataset = uploaded.json()
+    response = client.post(
+        f"/api/v1/datasets/{dataset['id']}/skills/hydrology/water-level-summary"
+        "?vertical_datum=MSL&measurement_reference=elevation"
+    )
+    assert response.status_code == 200
+    report = response.json()
+    assert report["row_count"] == 3
+    assert report["statistics"]["mean_m"] == 11.0
+    assert report["metadata_status"] == "declared"
+    assert report["groundwater_model_executed"] is False
+
+
+def test_hydrology_skill_rejects_dataset_with_wrong_role(tmp_path, monkeypatch):
+    monkeypatch.setenv("GEOLOGIA_DB_PATH", str(tmp_path / "db.sqlite3"))
+    monkeypatch.setenv("GEOLOGIA_UPLOAD_DIR", str(tmp_path / "uploads"))
+    project = client.post(
+        "/api/v1/projects", json={"name": "Wrong role", "language": "en"}
+    ).json()
+    payload = b"timestamp,water_level_m\n2026-01-01,1\n"
+    uploaded = client.post(
+        f"/api/v1/projects/{project['id']}/datasets",
+        content=payload,
+        headers={
+            "X-Dataset-Name": "Unclassified",
+            "X-Filename": "levels.csv",
+        },
+    )
+    dataset = uploaded.json()
+    response = client.post(
+        f"/api/v1/datasets/{dataset['id']}/skills/hydrology/water-level-summary"
+    )
+    assert response.status_code == 409
