@@ -1,0 +1,170 @@
+{
+  "comparability_rows": [
+    {
+      "classification": "comparable",
+      "external_track": "GeoBench question set released on Hugging Face",
+      "id": "frozen_eval_sets",
+      "internal_track": "golden_eval_v1.json fingerprint-locked + split-locked",
+      "reason_en": "both freeze their evaluation sets with published provenance; ours is additionally content-fingerprint-locked"
+    },
+    {
+      "classification": "comparable",
+      "external_track": "objective MCQ exact-match grading",
+      "id": "deterministic_grading",
+      "internal_track": "deterministic citation + required-term graders (T3.3)",
+      "reason_en": "both grade deterministically without judge models"
+    },
+    {
+      "classification": "not_comparable",
+      "external_track": "accuracy on 1,578 objective MCQs",
+      "id": "objective_mcq_accuracy",
+      "internal_track": "no generative MCQ track (ADR-0002 retrieval-only)",
+      "reason_en": "we are not a generative LLM; no run was performed and no score is claimed"
+    },
+    {
+      "classification": "not_comparable",
+      "external_track": "939 subjective questions, 50 scored with human evaluation",
+      "id": "subjective_human_eval",
+      "internal_track": "no generative subjective answers",
+      "reason_en": "human-judged generative scoring does not apply to a retrieval-only platform"
+    },
+    {
+      "classification": "ours_unique",
+      "external_track": "not tracked by GeoBench",
+      "id": "refusal_zero_hallucination",
+      "internal_track": "10 unanswerable + 5 fake-reference probes, refusal gate at 1.0 in every audit run",
+      "reason_en": "GeoBench measures accuracy only; honest refusal is our gated track"
+    },
+    {
+      "classification": "ours_unique",
+      "external_track": "no citation requirement",
+      "id": "per_answer_citation",
+      "internal_track": "every internal pass must cite a stored doc id with a required evidence term",
+      "reason_en": "citation-locked answers are native to our grader contract"
+    },
+    {
+      "classification": "ours_unique",
+      "external_track": "scores depend on model weights and judge models",
+      "id": "cross_system_reproducibility",
+      "internal_track": "content-derived fingerprints + geologia certify (ADR-0010)",
+      "reason_en": "our evidence chain reproduces identically on two independent systems"
+    },
+    {
+      "classification": "external_leads",
+      "external_track": "2,517 items (1,578 objective + 939 subjective)",
+      "id": "evaluation_scale",
+      "internal_track": "55 items (40 golden + 10 unanswerable + 5 fake references)",
+      "reason_en": "the external benchmark is ~45.8x larger; announced honestly, not hidden"
+    },
+    {
+      "classification": "external_leads",
+      "external_track": "national exam banks (NPEE, AP Test)",
+      "id": "question_source_diversity",
+      "internal_track": "10 internal digest corpus",
+      "reason_en": "external sources are broader; our corpus growth is gated on licensed partnerships"
+    },
+    {
+      "classification": "partially_comparable",
+      "external_track": "Chinese exam content (NPEE) + English (AP Test)",
+      "id": "language_coverage",
+      "internal_track": "Arabic-first golden questions with English negative probes",
+      "reason_en": "both are multilingual evaluation sets over different language pairs"
+    }
+  ],
+  "domain_mapping": [
+    {
+      "coverage": "partial",
+      "external_topic": "geology",
+      "internal_domains": [
+        "geochemistry",
+        "geophysics",
+        "seismology",
+        "well_logs"
+      ]
+    },
+    {
+      "coverage": "partial",
+      "external_topic": "geography",
+      "internal_domains": [
+        "gis",
+        "remote_sensing"
+      ]
+    },
+    {
+      "coverage": "partial",
+      "external_topic": "environmental_science",
+      "internal_domains": [
+        "hydrology",
+        "remote_sensing"
+      ]
+    }
+  ],
+  "external_benchmark": {
+    "composition": {
+      "external_total_items": 2517,
+      "objective_ap_test_mcq": 1395,
+      "objective_npee_mcq": 183,
+      "objective_total": 1578,
+      "subjective_human_eval_subset": 50,
+      "subjective_npee_total": 939,
+      "topic_areas": [
+        "geology",
+        "geography",
+        "environmental_science"
+      ],
+      "verbatim_quote_en": "In GeoBench, we collect 183 multiple-choice questions in NPEE, and 1,395 in AP Test, for objective tasks. Meanwhile, we gather all 939 subjective questions in NPEE to be the subjective tasks set and use 50 to measure the baselines with human evaluation.",
+      "verbatim_quote_source": "https://github.com/davendw49/k2 (README, accessed 2026-11-23)"
+    },
+    "introduced_in_paper": "K2: A Foundation Language Model for Geoscience Knowledge Understanding and Utilization (arXiv:2306.05064v2)",
+    "name": "GeoBench",
+    "position_en": "the first NLP benchmark in geoscience: objective multiple-choice questions plus subjective questions",
+    "redistribution_posture": {
+      "dataset_license_en": "apache-2.0 (HF dataset card tags, verified 2026-11-23)",
+      "questions_copied": 0,
+      "reason_ar": "الرخصة Apache-2.0 تسمح نظرياً، لكن عقيدة النظافة وغياب أي مسار توليدي MCQ في منصتنا يجعلان إعادة توزيع الأسئلة بلا أي فائدة قياسية — المحاذاة بنيوية وأرقام داخلية مقاسة: لا نسخ أسئلة ولا درجات مُدَّعاة."
+    },
+    "reference_points": {
+      "k2_model_en": "K2 (7B): LLaMA-7B further pretrained on 3.9 billion tokens of cleaned geoscience literature, then aligned with GeoSignal supervised data (upstream README, accessed 2026-11-23).",
+      "score_usage_note_ar": "لا نُقاس هنا أمام GeoBench ولا نستشهد بأرقام دقة K2 وكأنها أرقامنا — تشغيل أسئلتهم على منصتنا غير مُنفَّذ ولا يُدَّعى."
+    },
+    "sources": [
+      {
+        "accessed": "2026-11-23",
+        "kind": "paper_abs",
+        "url": "https://arxiv.org/abs/2306.05064"
+      },
+      {
+        "accessed": "2026-11-23",
+        "kind": "paper_html",
+        "url": "https://arxiv.org/html/2306.05064v2"
+      },
+      {
+        "accessed": "2026-11-23",
+        "kind": "repository",
+        "note_en": "code released under Apache License 2.0 (upstream README)",
+        "url": "https://github.com/davendw49/k2"
+      },
+      {
+        "accessed": "2026-11-23",
+        "kind": "dataset",
+        "note_en": "dataset card tags: license:apache-2.0, size_categories:1K<n<10K",
+        "url": "https://huggingface.co/datasets/daven3/geobench"
+      },
+      {
+        "accessed": "2026-11-23",
+        "kind": "dataset",
+        "note_en": "supervised fine-tuning corpus, license:apache-2.0",
+        "url": "https://huggingface.co/datasets/daven3/geosignal"
+      }
+    ]
+  },
+  "fingerprint_sha256": "fbe39f7f7160031da757447e1807ae98818275936631aeb0a3932e62dbae52eb",
+  "frozen": "2026-11-23",
+  "note_ar": "ملف المحاذاة الخارجية المجمّد: حقائق GeoBench المنشورة بأرقامها الحرفية من مصادرها الأصلية مع تاريخ الوصول، وبصفوف قابلية مقارنة تصنّف بصدق أين نتطابق وأين نقصر. لا سؤال امتحاني واحد منسوخ هنا — المحاذاة بنيوية وبأرقام داخلية مقاسة فقط، وكل رقم يحمل مصدره.",
+  "schema": "geologia.external-alignment.v1",
+  "unmapped_internal_domains": [
+    "exploration",
+    "geology3d"
+  ],
+  "unmapped_note_ar": "مجالا الاستكشاف والنمذجة ثلاثية الأبعاد عندنا بلا مقابل في مواضيع GeoBench الثلاثة — التغطية ليست في اتجاه واحد، وهذا يُعلن بصدق."
+}

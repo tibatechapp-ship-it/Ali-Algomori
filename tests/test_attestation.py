@@ -20,7 +20,7 @@ from geologia.attestation import (
 from geologia.evaluation.audit import sha256_of
 
 EXPECTED_CHAIN_FP = (
-    "8994ab873b1879bf0549ee81c9c6b3434a02c9980e584be7e0cbff18455c6c19"
+    "3c85ba9911cfa4b9302902becf700cee6ad37888f1fd5a3fef621a9234dd545e"
 )
 
 

@@ -1,4 +1,4 @@
-# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.17.0)
+# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.18.0)
 
 **Honest self-assessment: what we built, what is strong, what is weak, and what
 we are doing about it — measured, not vibes.**
@@ -21,9 +21,12 @@ the governance gap (LICENSE/NOTICE/SUPPORT), the interface gap (bilingual
 corporate README), and the hygiene gap (stray tracked files), and sets the
 measured roadmap for the rest.
 
-Current baseline (v0.17.0): core **455 passing / 12 skipped** on the full
+Current baseline (v0.18.0): core **465 passing / 12 skipped** on the full
 path, workspace **366 passing / 37 skipped** on the CI gate (**425/3**
-locally with full extras), ruff clean on both layers. The strengths and
+locally with full extras), ruff clean on both layers. The GeoBench-style
+external-alignment gap (ض8) is closed: frozen external facts, measured
+internal numbers, and an honest comparability table — see
+[EXTERNAL_ALIGNMENT_V1](benchmark/EXTERNAL_ALIGNMENT_V1.md). The strengths and
 weaknesses below were measured at the historical baseline and are kept as
 the honest record — any claim that moved since carries its update inline.
 
@@ -90,7 +93,7 @@ the honest record — any claim that moved since carries its update inline.
 | ض5 | مجتمع ومساهمات خارجية: صفر | لا CONTRIBUTING ولا قنوات | `CONTRIBUTING.md` ثنائية اللغة جاهزة (0.9.0) بعدم القابل للتفاوض ومسار المقترحات؛ المستوى التالي: أول مساهم خارجي عبر مستويات الشراكة | الوثيقة عولجت في 0.9.0 — المجتمع لاحق |
 | ض6 | حجم المعرفة صغير (بذرة) | seed_catalog + 10 digests | خطط اكتساب مرخص عبر شراكة البيانات (SUPPORT بند 2) — لا فيلقاً مجانياً | مخطط |
 | ض7 | لا تصور بصري (خرائط/3D) | مقفل عمداً خلف المرحلة 1.5 | ليس عيباً بل انضباط؛ عند فتح المرحلة 2 نبدأ بخريطة تفاعلية مرتبطة ببوابة CRS | مؤجل مقصود |
-| ض8 | القياس داخلي فقط | لا مشاركة خارجية في التقييم | المصفوفة التنافسية الآن موثقة بمصادر؛ لاحقاً محاذاة GeoBench-style خارجي عند استقرار T3 | مخطط |
+| ض8 | القياس داخلي فقط | لا مشاركة خارجية في التقييم | **تقرير المحاذاة الخارجية GeoBench-style منشور** ([EXTERNAL_ALIGNMENT_V1](benchmark/EXTERNAL_ALIGNMENT_V1.md)): حقائق المعيار الخارجي مجمّدة ملفاً موثقاً بالبصمة، وأرقامنا الداخلية مقاسة بالتدقيق الحتمي، وعشر صفوف قابلية مقارنة تصنّف بصدق بما فيها صفّا الحجم وتنوع المصادر حيث يقود المعيار الخارجي | **عولج في 0.18.0** |
 
 ## 3) خط الأساس المقاس (2026-11-22)
 
@@ -171,3 +174,35 @@ the honest record — any claim that moved since carries its update inline.
   جيولوجية). النواة الآن **455/12** (9 اختبارات شهادة جديدة).
 - **المتبقي المعلن:** ض5 (أول مساهم خارجي — مؤسسي)، ض8 (محاذاة خارجية
   GeoBench-style)، ض6 (اكتساب معرفة مرخص) — بوابات لا تواريخ.
+
+---
+
+## 7) تحديث الخط الأساس — v0.18.0 (2026-11-23)
+
+الفجوة P0 الثانية أُغلقت بأدلة لا بتصريحات:
+
+- **المحاذاة الخارجية GeoBench-style منشورة:**
+  [EXTERNAL_ALIGNMENT_V1](benchmark/EXTERNAL_ALIGNMENT_V1.md) — حقائق GeoBench
+  (أول معيار NLP لعلوم الأرض، من ورقة K2 arXiv:2306.05064v2) مجمّدة في
+  [ملف موثق بالبصمة](../../src/geologia/data/evaluation/external_alignment_v1.json)
+  بنفس نمط قفل المجموعة الذهبية: 183 سؤالاً موضوعياً من NPEE + 1,395 من
+  AP Test + 939 تحليلياً (50 بتقييم بشري) — بمصادرها وتاريخ وصولها
+  والاقتباس الحرفي حارساً لانحراف النقل، وبلا نسخ سؤال امتحاني واحد
+  (`questions_copied: 0`).
+- **أرقامنا الداخلية مقاسة لا مزعومة:** التدقيق الحتمي نفسه الذي تشغّله
+  CI — 55 عنصراً (40 ذهبية: 27 تطويرياً + 13 محجوبة، 10 سلبية، 5 مراجع
+  مزيفة)، بوابة الرفض الصادق **1.0 حاكمة**، ومعدل صلاحية الاستشهاد
+  **1.0 مقاس**.
+- **جدول قابلية المقارنة عشر الصفوف مصنّف بصدق:** 2 `comparable`،
+  1 `partially_comparable`، 2 `not_comparable`، 3 `ours_unique`،
+  و2 `external_leads` — حجم المعيار الخارجي أكبر 45.8× وتنوع مصادره أوسع:
+  خسارة معلنة في الملف المجمّد نفسه لا مخفية في نثر دعائي (بوابة
+  «النتيجة المعلنة حتى لو خسرنا صفوفاً» مُختبرة برمجياً).
+- **بصمات التشغيل مثبتة بالاختبارات:** بصمة ملف الحقائق الخارجية
+  `fbe39f7f7160031da757447e1807ae98818275936631aeb0a3932e62dbae52eb`،
+  والبصمة الحاكمة لسلسلة الأدلة الآن فوق **33 أصلاً** (أصل المحاذاة
+  أُعلن في الشهادة): `3c85ba9911cfa4b9302902becf700cee6ad37888f1fd5a3fef621a9234dd545e`.
+- النواة الآن **465/12** (10 اختبارات محاذاة جديدة)، ruff نظيف،
+  الإصدار 0.18.0 في الطبقتين.
+- **المتبقي المعلن:** ض5 (أول مساهم خارجي — مؤسسي)، ض6 (اكتساب معرفة
+  مرخص) — بوابات لا تواريخ.

@@ -9,6 +9,7 @@
     "agents/scientific_review.json": "36c0ecfedacef8ff0a6fbfeae641018a28a4ec95327cb94c816cbf6359685f0e",
     "agents/stratigraphy.json": "b92aa0216dde14e3c643f9a00c5a6a77efe4e8137455d2bd4c584be30e96cfbe",
     "agents/tectonics.json": "c69df38cb84f236b741dd0fb79c6e9dcf8b56a6c7cc2470eabb35dce2a4f0b6d",
+    "evaluation/external_alignment_v1.json": "cbd8365b14a4f21a521d3e7bd0766fcad2b7b0feea551754191bed846069322e",
     "evaluation/golden_eval_v1.json": "cf834747954f63989871ad2dd49b71b294fab68a9f3b6392d65d6c06b0f1d67d",
     "first_party_engines.json": "e9705d81c45a45829ece27cba4a7e8788bf9c9441488b64c7a9d8706df6178d0",
     "knowledge/docs/digest_01_timeline_principles.md": "7df95ca4dca84fa76c09c9653808c0017f2b268f1b7bf197b70f423a11781b13",
@@ -34,9 +35,9 @@
     "reference/transformations.json": "2c1cfa86fe4ebf0e8457305f37a8fac228dd2986b87a625343af89c4e759ada4"
   },
   "attestation_version": "1.0.0",
-  "chain_fingerprint_sha256": "8994ab873b1879bf0549ee81c9c6b3434a02c9980e584be7e0cbff18455c6c19",
+  "chain_fingerprint_sha256": "3c85ba9911cfa4b9302902becf700cee6ad37888f1fd5a3fef621a9234dd545e",
   "frozen_at": "2026-11-23",
-  "geologia_version": "0.17.0",
+  "geologia_version": "0.18.0",
   "golden_eval": {
     "blocked_split_sha256": "60da21b1c35c8f5f5d36d378c3314307828f964b828ac5f8bb87eac26189f13a",
     "fingerprint_sha256": "d5e97b17e1a7d37412bec542b9317946dfc6631d4cc45c5665ad08ece24de1aa"

@@ -48,6 +48,7 @@ GOLDEN_EVAL_REL = "evaluation/golden_eval_v1.json"
 # (sorted glob) so a new card or digest is caught as "undeclared" until the
 # reference is regenerated through the documented procedure.
 EVIDENCE_ASSETS: List[str] = [
+    "evaluation/external_alignment_v1.json",
     "evaluation/golden_eval_v1.json",
     "first_party_engines.json",
     "knowledge/engines_kb.json",

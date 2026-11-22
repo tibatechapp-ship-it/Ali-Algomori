@@ -44,7 +44,7 @@ Three principles make it unlike any other platform in its class:
    knowledge layer cites or refuses, and third-party engines are refused at the
    code level until they pass a full certification lifecycle.
 
-## What works today (v0.17.0)
+## What works today (v0.18.0)
 
 | Capability | Status |
 | --- | --- |
@@ -62,7 +62,8 @@ Three principles make it unlike any other platform in its class:
 | Knowledge graph v1 — typed entities, closed relation pairs, no edge without evidence (T2.4) | Stable |
 | Official EGM96/EGM2008 grids ingested through the gate — 8 gates recorded, our-parser vs PROJ crosscheck Δ = 0 m, 25 frozen golden nodes per grid (T4.1) | Stable |
 | Agent-level vertical refusal rule — coded 409 without a loaded AND verified grid; no approximate value, no silent MSL (T4.2) | Stable |
-| Reproducible evidence-chain attestation — `geologia certify`: one content-derived chain fingerprint over 32 declared assets, verified against the committed reference, tamper-evident offline | Stable ([ADR-0010](docs/adr/0010-reproducible-attestation.md)) |
+| Reproducible evidence-chain attestation — `geologia certify`: one content-derived chain fingerprint over 33 declared assets, verified against the committed reference, tamper-evident offline | Stable ([ADR-0010](docs/adr/0010-reproducible-attestation.md)) |
+| External alignment report (GeoBench-style) — frozen external facts, measured internal numbers, honest comparability rows including where the external benchmark leads | Stable ([report](docs/benchmark/EXTERNAL_ALIGNMENT_V1.md)) |
 | Geospatial analysis, 3D modelling, MODFLOW | **Deliberately locked** behind the trusted-data phase ([ROADMAP](docs/ROADMAP.md)) |
 
 ## Quickstart
@@ -80,6 +81,7 @@ geologia dataset add "صنعاء بئر-01" well_log.las --dtype las
 geologia task create "porosity" porosity_density_v1 ds-ab12cd34ef56 --param rho_ma_gcm3=2.65
 geologia vertical 15.35 44.2          # geoid undulation — 409 refusal without a verified grid
 geologia certify                      # whole evidence-chain attestation (ADR-0010)
+python -m geologia.evaluation.alignment   # GeoBench-style external alignment report
 geologia serve --port 8000
 ```
 
@@ -108,6 +110,8 @@ for regions with limited compute infrastructure.
 | [docs/adr/](docs/adr/) | All decisions, ADR-0001 → ADR-0010 |
 | [docs/ASSESSMENT.md](docs/ASSESSMENT.md) | Honest self-assessment: strengths, weaknesses, fixes |
 | [docs/benchmark/COMPETITIVE_MATRIX.md](docs/benchmark/COMPETITIVE_MATRIX.md) | Global comparison vs 14 platforms (open & closed) |
+| [docs/benchmark/EXTERNAL_ALIGNMENT_V1.md](docs/benchmark/EXTERNAL_ALIGNMENT_V1.md) | GeoBench-style external alignment: frozen facts + measured numbers + honest comparability |
+| [docs/benchmark/STRATEGIC_LEADERSHIP_PLAN.md](docs/benchmark/STRATEGIC_LEADERSHIP_PLAN.md) | Leadership & independence plan with acceptance gates |
 | [docs/VISION.md](docs/VISION.md) | Nucleus for the Arab & Islamic world's universities, research centers, companies |
 | [docs/EDUCATION.md](docs/EDUCATION.md) | GEOLOGIA Academy — practical learning track |
 | [SUPPORT.md](SUPPORT.md) | Partnership tiers & contact |
@@ -135,7 +139,7 @@ knowledge units remains the declared next binding step. The former standalone
 `geologia` repository remains as the workspace archive — this repository's
 [LICENSE.md](LICENSE.md) governs everything here.
 
-**Python & CI baseline (v0.17.0):** the governed core supports Python
+**Python & CI baseline (v0.18.0):** the governed core supports Python
 ≥3.10 — the CI matrix runs a `latest` path and a `termux-compat` path on
 pydantic<2 without compiled dependencies; the workspace layer requires
 Python ≥3.12 (its `pyproject.toml` pins exact ranges). The root
@@ -178,7 +182,7 @@ on every run.
 ### Reproducible attestation (ADR-0010)
 
 The honesty fingerprint is now a product: `geologia certify` (no engine id)
-recomputes the whole evidence chain — 32 declared assets plus the frozen
+recomputes the whole evidence chain — 33 declared assets plus the frozen
 golden-eval internal fingerprints — into one content-derived chain
 fingerprint and verifies it against
 [data/attestation/attestation_reference_v1.json](src/geologia/data/attestation/attestation_reference_v1.json),
@@ -198,7 +202,11 @@ engineering integrity — never geological truth.
 We benchmarked ourselves against the open-source leaders (GemPy v3, LoopStructural),
 the AI geoscience platforms (GeoGPT/DDE, K2 + GeoBench), the data standards (OSDU),
 and the closed leaders (Leapfrog Geo, Petrel/DELFI, GeoModeller) — see the
-[competitive matrix](docs/benchmark/COMPETITIVE_MATRIX.md). Our differentiator is
+[competitive matrix](docs/benchmark/COMPETITIVE_MATRIX.md). The GeoBench-style
+external alignment is now published with frozen external facts and an honest
+comparability table — including the two rows where the external benchmark
+leads us ([EXTERNAL_ALIGNMENT_V1.md](docs/benchmark/EXTERNAL_ALIGNMENT_V1.md)).
+Our differentiator is
 not another modelling engine; it is an **auditable evidence layer with honest
 refusal, bilingual by design (Arabic-first)** — a gap none of the surveyed
 platforms fills today.
@@ -237,7 +245,7 @@ GeoAI وGIS، مراجعة علمية). صُممت لتكون رابطاً مع�
 5. عزل المحركات: لا بيئة Python واحدة تجمع كل الاعتماديات، ونجاح CI ليس
    شهادة صحة النتائج الجيولوجية.
 
-### ما يعمل الآن (v0.17.0)
+### ما يعمل الآن (v0.18.0)
 
 - نواة API + مخطط حتمي لتسعة مجالات، وبوابة استقبال آمنة (حدود حجم، تفتيش
   بايتات سحرية، أمان أرشيفات بلا استخراج، تعقيم أسماء بعلامات bidi)، ونقطة
@@ -257,7 +265,8 @@ GeoAI وGIS، مراجعة علمية). صُممت لتكون رابطاً مع�
   جرّدتا عبر البوابة نفسها والبوابات الثماني مسجلة، والتحقق المستقل
   (محللنا مقابل PROJ على نفس البايتات) بتطابق صفر متر، وقاعدة رفض رأسي
   مرمزة 409 — `geologia vertical LAT LON`.
-- **الشهادة القابلة لإعادة التوليد (0.17.0، [ADR-0010](docs/adr/0010-reproducible-attestation.md))**: `geologia certify` بلا معرّف محرك يتحقق من سلسلة الأدلة كاملة — بصمة حاكمة مشتقة من المحتوى وحده لـ 32 أصلاً إثباتياً معلناً + بصمتي المجموعة الذهبية الداخليتين، مقابل مرجع مثبت داخل الشجرة؛ عبث أو حذف أو إضافة غير معلنة تُكشف بلا اتصال، والبصمة متطابقة عبر نظامين مستقلين.
+- **الشهادة القابلة لإعادة التوليد (0.17.0، [ADR-0010](docs/adr/0010-reproducible-attestation.md))**: `geologia certify` بلا معرّف محرك يتحقق من سلسلة الأدلة كاملة — بصمة حاكمة مشتقة من المحتوى وحده لـ 33 أصلاً إثباتياً معلناً (أُضيف أصل المحاذاة الخارجية في 0.18.0) + بصمتي المجموعة الذهبية الداخليتين، مقابل مرجع مثبت داخل الشجرة؛ عبث أو حذف أو إضافة غير معلنة تُكشف بلا اتصال، والبصمة متطابقة عبر نظامين مستقلين.
+- **المحاذاة الخارجية GeoBench-style (0.18.0)**: حقائق GeoBench المنشورة مجمّدة في ملف موثق بالبصمة (183 + 1,395 سؤالاً موضوعياً، 939 تحليلياً، بلا نسخ سؤال واحد)، وأرقامنا الداخلية مقاسة بالتدقيق الحتمي نفسه الذي تشغّله CI (بوابة الرفض 1.0)، وجدول قابلية مقارنة عشر الصفوف يعلن بصدق أين نتطابق وأين يقود المعيار الخارجي (45.8× حجم) — [التقرير](docs/benchmark/EXTERNAL_ALIGNMENT_V1.md).
 - النمذجة ثلاثية الأبعاد والمياه الجوفية **مقفلة عمداً** خلف اكتمال طبقة
   البيانات الموثوقة — انضباط مقصود لا قصور ([خارطة الطريق](docs/ROADMAP.md)).
 
@@ -273,6 +282,7 @@ geologia plan "حلل المياه الجوفية حول حوض صنعاء"
 geologia knowledge search "من بدأ علم الجيولوجيا في التاريخ؟"
 geologia verify سجل_البئر.las --type las
 geologia certify                      # شهادة سلامة سلسلة الأدلة كاملة (ADR-0010)
+python -m geologia.evaluation.alignment   # تقرير المحاذاة الخارجية GeoBench-style
 geologia serve --port 8000
 ```
 
@@ -285,6 +295,8 @@ geologia serve --port 8000
 [docs/adr/](docs/adr/) من ADR-0001 إلى ADR-0010، والتقييم الذاتي الصادق في
 [docs/ASSESSMENT.md](docs/ASSESSMENT.md)، والموقع التنافسي العالمي في
 [docs/benchmark/COMPETITIVE_MATRIX.md](docs/benchmark/COMPETITIVE_MATRIX.md)،
+وتقرير المحاذاة الخارجية في
+[docs/benchmark/EXTERNAL_ALIGNMENT_V1.md](docs/benchmark/EXTERNAL_ALIGNMENT_V1.md)،
 ورؤية التبني الإقليمي في [docs/VISION.md](docs/VISION.md)، والمسار التعليمي
 العملي في [docs/EDUCATION.md](docs/EDUCATION.md).
 
@@ -303,7 +315,7 @@ geologia serve --port 8000
 رفض مرمز، تخطٍّ صادق — ونجاح CI يبقى شهادة هندسية لا علمية أبداً. ومنذ v0.11.0 ارتبطت الطبقتان عند باب الاستيعاب: كل استيعاب معرفة في مساحة العمل (CLI والبذور) يمر أولاً عبر بوابة الاستقبال في النواة الحاكمة — البايتات المرفوضة لا تُفهرس أبداً، وكل حكم يترك أثراً في سجل المصدر المضاد للتلاعب. الاسترجاع المدعوم بشبكة المعرفة على وحدات النواة يبقى خطوة الربط المعلنة التالية. مستودع `geologia` السابق يبقى أرشيفاً
 لتاريخ مساحة العمل — و[رخصة هذا المستودع](LICENSE.md) تحكم كل ما هنا.
 
-**خط أساس Python وCI (v0.17.0):** النواة الحاكمة تدعم Python ≥3.10 —
+**خط أساس Python وCI (v0.18.0):** النواة الحاكمة تدعم Python ≥3.10 —
 مصفوفة CI تشغّل مسار `latest` ومسار `termux-compat` على pydantic<2 بلا
 اعتماديات مترجمة، ومساحة العمل تتطلب Python ≥3.12 (تثبّت نطاقاتها في
 pyproject الخاص بها). الملف الجذري `.github/workflows/ci.yml` هو بوابة
@@ -341,7 +353,7 @@ OneGeology بعد 18 عاماً هو الدرس المؤسسي المعاصر. v
 ### الشهادة القابلة لإعادة التوليد (ADR-0010)
 
 بصمة الصدق صارت منتجاً: `geologia certify` بلا معرّف محرك يعيد حساب
-سلسلة الأدلة كاملة — 32 أصلاً إثباتياً معلناً مع بصمتي المجموعة الذهبية
+سلسلة الأدلة كاملة — 33 أصلاً إثباتياً معلناً مع بصمتي المجموعة الذهبية
 المجمّدة الداخليتين — إلى بصمة حاكمة مشتقة من المحتوى وحده، ويتحقق منها
 مقابل [المرجع المثبت داخل الشجرة](src/geologia/data/attestation/attestation_reference_v1.json).
 عبثٌ بأي أصل، أو حذفُ أصلاً أو إضافةُ غير معلن، أو كسرٌ للبصمات الذهبية
