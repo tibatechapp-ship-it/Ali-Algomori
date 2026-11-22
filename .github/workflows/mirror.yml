@@ -38,7 +38,7 @@ jobs:
       # (secret URL, ADR-0009). Safe outside Actions too: unset of a missing key
       # is a no-op.
       - name: Drop Actions auth header (mirror URL credentials must win)
-        run: git config --local --unset-all http.https://github.com/.extraheader || :
+        run: git config --local --unset-all http.https://github.com/.extraheader || true
 
       - name: Sync governing branch and tags to the mirror
         if: steps.guard.outputs.enabled == 'true'
