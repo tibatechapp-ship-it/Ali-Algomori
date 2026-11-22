@@ -1,4 +1,4 @@
-# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.15.1)
+# التقييم الذاتي الصادق — GEOLOGIA (الخط التاريخي v0.8.1 — الخط الحالي v0.17.0)
 
 **Honest self-assessment: what we built, what is strong, what is weak, and what
 we are doing about it — measured, not vibes.**
@@ -21,7 +21,7 @@ the governance gap (LICENSE/NOTICE/SUPPORT), the interface gap (bilingual
 corporate README), and the hygiene gap (stray tracked files), and sets the
 measured roadmap for the rest.
 
-Current baseline (v0.15.1): core **438 passing / 12 skipped** on the full
+Current baseline (v0.17.0): core **455 passing / 12 skipped** on the full
 path, workspace **366 passing / 37 skipped** on the CI gate (**425/3**
 locally with full extras), ruff clean on both layers. The strengths and
 weaknesses below were measured at the historical baseline and are kept as
@@ -51,7 +51,9 @@ the honest record — any claim that moved since carries its update inline.
   مستقل عن المحرك (معادلات EPSG:3857 المنشورة بلا pyproj)، كشف عبث لحظة
   التنفيذ.
 - **التعزيز:** نعرض «بصمة الصدق» كمنتج مستقل لاحقاً — شهادة قابلة للتحقق
-  يمكن لجامعة أو شركة إعادة توليدها محلياً.
+  يمكن لجامعة أو شركة إعادة توليدها محلياً. **تحقق فعلاً في 0.17.0**
+  ([ADR-0010](adr/0010-reproducible-attestation.md)): `geologia certify`
+  يتحقق من سلسلة الأدلة كاملة ببصمة متطابقة عبر نظامين مستقلين.
 
 ### ق4: حوكمة قرارات كاملة
 - **الدليل:** ثمانية ADRs من 0001 إلى 0008، كل قرار بأبداله المرفوضة
@@ -141,3 +143,31 @@ the honest record — any claim that moved since carries its update inline.
   [benchmark/STRATEGIC_LEADERSHIP_PLAN.md](benchmark/STRATEGIC_LEADERSHIP_PLAN.md).
 - **الفجوة الوحيدة الكبرى المتبقية:** ض5 — أول مساهم خارجي؛ علاجها مؤسسي
   (شراكات الجامعات) لا تقني.
+
+---
+
+## 6) تحديث الخط الأساس — v0.16.0 وv0.17.0 (2026-11-23)
+
+تطويران رئيسيان بعد القسم 5، بأرقام CI المقاسة وأدلة التشغيل المثبّتة:
+
+- **v0.16.0 — المرآة الثانية وأدلة التشغيل المثبّتة:** آلة مزامنة
+  واستعادة مُختبَرة طرفاً إلى طرف ([ADR-0009](adr/0009-mirror-independence.md))
+  — `scripts/mirror_sync.sh` يدفع الفرع الحاكم وكل الوسوم بلا قوة تجبرية
+  إلى مضيف ثانٍ بسر `GEOLOGIA_MIRROR_REMOTE_URL` ويطابق كل بصمة، و
+  `scripts/mirror_restore_verify.py` يستنسخ من المرآة نفسها ويُثبت تطابق
+  التاريخ؛ بلا سر تخطٍّ صادق برمز 0. جدول «Pinned run evidence» في README
+  (باللغتين) يربط كل ادعاء أرقام بتشغيل CI ملموس: [تشغيل CI
+  45054712124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712124)
+  عند `1f270d7` — النواة 446/12 وworkspace 366/37 على البوابة.
+- **v0.17.0 — الشهادة القابلة لإعادة التوليد:** الفجوة P1 الرابعة أُغلقت
+  ([ADR-0010](adr/0010-reproducible-attestation.md)): `geologia certify`
+  بلا معرّف محرك يعيد حساب 32 أصلاً إثباتياً معلناً + بصمتي المجموعة
+  الذهبية الداخليتين إلى بصمة حاكمة مشتقة من المحتوى وحده، يتحقق منها
+  مقابل مرجع مثبت داخل الشجرة — عبث أو حذف أو إضافة غير معلنة أو تعديل
+  صامت للمرجع كلها تُكشف محلياً بلا اتصال، والبصمة متطابقة عبر نظامين
+  مستقلين (بوابة القبول مُختبرة باختبار شجرتين). الفحوص التشغيلية
+  استشارية مستثناة من البصمة تصريحاً، وكل مخرج يحمل تصنيف حقيقة موثق
+  مع الحدّين الصادقين (كاشفة للعبث لا مانعة منه؛ سلامة هندسية لا صحة
+  جيولوجية). النواة الآن **455/12** (9 اختبارات شهادة جديدة).
+- **المتبقي المعلن:** ض5 (أول مساهم خارجي — مؤسسي)، ض8 (محاذاة خارجية
+  GeoBench-style)، ض6 (اكتساب معرفة مرخص) — بوابات لا تواريخ.

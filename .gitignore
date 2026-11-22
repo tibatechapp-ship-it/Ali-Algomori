@@ -13,3 +13,4 @@ bootstrap.py
 tool-results/
 # release zips ship outside the tracked tree
 download/*.zip
+.geologia/

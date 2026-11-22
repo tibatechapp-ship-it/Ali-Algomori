@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geologia"
-version = "0.16.0"
+version = "0.17.0"
 description = "GEOLOGIA - bilingual geoscience intelligence platform (foundation)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,7 +28,8 @@ where = ["src"]
 [tool.setuptools.package-data]
 geologia = ["data/*.json", "data/reference/*.json",
             "data/knowledge/*.json", "data/knowledge/docs/*.md",
-            "data/evaluation/*.json", "data/agents/*.json"]
+            "data/evaluation/*.json", "data/agents/*.json",
+            "data/attestation/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

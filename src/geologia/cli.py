@@ -9,7 +9,8 @@
 #   geologia verify PATH [--type auto|las|geojson|csv|tiff]
 #   geologia dataset add NAME PATH [--dtype auto] [--crs ...] [--units ...]
 #   geologia dataset list | geologia dataset validate ID | geologia dataset checksum ID
-#   geologia certify ENGINE_ID           (first-party engines only)
+#   geologia certify [ENGINE_ID]      (with id: first-party engine certification;
+#                                      without: whole-evidence-chain attestation)
 #   geologia task create TITLE ENGINE_ID DS... [--param KEY=VAL ...]
 #   geologia task list | geologia task go ID STATE
 #   geologia task execute ID | geologia task report ID | geologia task verify ID
@@ -50,8 +51,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_det.add_argument("engine_id")
 
     p_cer = sub.add_parser(
-        "certify", help="certify a first-party engine via its pinned reference test")
-    p_cer.add_argument("engine_id")
+        "certify",
+        help="certify a first-party engine via its pinned reference test; "
+             "with no ENGINE_ID, attest the whole evidence chain (ADR-0010)")
+    p_cer.add_argument("engine_id", nargs="?", default=None)
 
     p_k = sub.add_parser("knowledge", help="knowledge base (retrieval-only)")
     ksub = p_k.add_subparsers(dest="kcmd", required=True)
@@ -166,6 +169,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     if args.command == "certify":
+        if args.engine_id is None:
+            from geologia.attestation import verify_attestation
+            report = verify_attestation()
+            _print(report)
+            if report["status"] != "pass":
+                print("[!] كسر في سلسلة الأدلة — راجع mismatches ولا تتابع بصمت. / "
+                      "Evidence chain broken — see mismatches, never continue "
+                      "silently.", file=sys.stderr)
+                return 1
+            return 0
         from geologia.data_layer.certification import CertificationRefused, certify_engine
         try:
             report = certify_engine(args.engine_id)
