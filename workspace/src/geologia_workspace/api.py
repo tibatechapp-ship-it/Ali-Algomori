@@ -47,6 +47,7 @@ from geologia_workspace import knowledge, store
 from geologia_workspace.storage_audit import audit_upload_storage
 from geologia_workspace.planner import agent_status, build_plan
 from geologia_workspace.skill_evaluation import evaluate_routing_benchmark
+from geologia_workspace.hydrology_skill import analyze_water_level_timeseries
 from geologia_workspace.registry import get_engine, list_engines
 from geologia_workspace.runtime import parse_port
 from geologia_workspace.vector import inspect_csv, inspect_geojson
@@ -1930,6 +1931,41 @@ def dataset_reproject(dataset_id: str, body: ReprojectInput) -> dict:
     finally:
         if temporary_path is not None:
             temporary_path.unlink(missing_ok=True)
+
+
+@app.post("/api/v1/datasets/{dataset_id}/skills/hydrology/water-level-summary")
+def dataset_water_level_summary(
+    dataset_id: str,
+    vertical_datum: str | None = Query(None, max_length=120),
+    measurement_reference: str | None = Query(None, max_length=30),
+) -> dict:
+    """Run local descriptive water-level QC on a registered CSV dataset."""
+    item = store.get_dataset(dataset_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="dataset not found")
+    if item["format"] != "csv":
+        raise HTTPException(status_code=415, detail="water-level skill requires CSV")
+    if item["data_role"] != "water_levels_timeseries":
+        raise HTTPException(
+            status_code=409,
+            detail="dataset must be explicitly registered as water_levels_timeseries",
+        )
+    content_path = store.get_dataset_content_path(dataset_id)
+    if content_path is None or not Path(content_path).is_file():
+        raise HTTPException(status_code=410, detail="dataset file is missing")
+    if not _dataset_content_matches(item, Path(content_path)):
+        raise HTTPException(
+            status_code=409,
+            detail="dataset integrity mismatch; stored bytes differ from upload record",
+        )
+    try:
+        return analyze_water_level_timeseries(
+            content_path,
+            vertical_datum=vertical_datum,
+            measurement_reference=measurement_reference,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/datasets/{dataset_id}/geojson")
