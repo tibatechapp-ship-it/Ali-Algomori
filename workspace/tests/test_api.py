@@ -1,4 +1,3 @@
-import hashlib
 import importlib.util
 from pathlib import Path
 
@@ -6,7 +5,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 from geologia_workspace.api import app
-from geologia_workspace import store
 
 client = TestClient(app)
 
@@ -508,10 +506,10 @@ def test_hydrology_skill_runs_only_on_registered_integrity_checked_dataset(
         "/api/v1/projects", json={"name": "Hydrology skill", "language": "en"}
     ).json()
     csv_bytes = (
-        b"timestamp,water_level_m\\n"
-        b"2026-01-01T00:00:00Z,10.0\\n"
-        b"2026-01-02T00:00:00Z,11.0\\n"
-        b"2026-01-03T00:00:00Z,12.0\\n"
+        b"timestamp,water_level_m\n"
+        b"2026-01-01T00:00:00Z,10.0\n"
+        b"2026-01-02T00:00:00Z,11.0\n"
+        b"2026-01-03T00:00:00Z,12.0\n"
     )
     uploaded = client.post(
         f"/api/v1/projects/{project['id']}/datasets",
@@ -542,7 +540,7 @@ def test_hydrology_skill_rejects_dataset_with_wrong_role(tmp_path, monkeypatch):
     project = client.post(
         "/api/v1/projects", json={"name": "Wrong role", "language": "en"}
     ).json()
-    payload = b"timestamp,water_level_m\\n2026-01-01,1\\n"
+    payload = b"timestamp,water_level_m\n2026-01-01,1\n"
     uploaded = client.post(
         f"/api/v1/projects/{project['id']}/datasets",
         content=payload,
