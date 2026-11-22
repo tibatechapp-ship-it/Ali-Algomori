@@ -40,6 +40,16 @@ jobs:
       - name: Drop Actions auth header (mirror URL credentials must win)
         run: git config --local --unset-all http.https://github.com/.extraheader || true
 
+      # On a tag event, checkout checks out the tag (detached HEAD) and the
+      # local repo holds no refs/heads/main — the sync script's explicit
+      # "refs/heads/main" refspec then matches nothing ("src refspec does
+      # not match any"). Fetching the governing branch ref without checking
+      # it out restores the refs the script pushes; all tag objects are
+      # already local because fetch-depth: 0 fetches every tag.
+      - name: Ensure governing branch ref exists (tag-event checkouts are detached)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: git fetch origin refs/heads/main:refs/heads/main
+
       - name: Sync governing branch and tags to the mirror
         if: steps.guard.outputs.enabled == 'true'
         env:
