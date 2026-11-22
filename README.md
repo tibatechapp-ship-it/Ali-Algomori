@@ -154,6 +154,7 @@ an assertion:
 | --- | --- | --- |
 | v0.15.1 | core 438/12 · workspace 366/37 green on the CI gate · tri-platform desktop assets | [CI run 45052350042](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052350042) · [Desktop Release run 45052349833](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052349833) at commit `b9504ea` |
 | v0.16.0 | core 446/12 · workspace 366/37 on the CI gate · mirror workflow honest-skip verified | [CI run 45054712124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712124) · [Mirror sync run 45054712138](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712138) at commit `1f270d7` |
+| v0.17.0 | core 455/12 · workspace 366/37 on the CI gate · evidence-chain attestation shipped (ADR-0010) | [CI run 45057872188](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872188) · [Mirror sync run 45057872124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872124) at commit `bb55c92` |
 
 ### Second-mirror independence (ADR-0009)
 
@@ -319,6 +320,7 @@ commit الوسم. كل رقم اختبارات في هذا الملف مرتب�
 | --- | --- | --- |
 | v0.15.1 | النواة 438/12 · مساحة العمل 366/37 خضراء على بوابة CI · أصول مكتبي ثلاثية الأنظمة | [تشغيل CI 45052350042](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052350042) · [تشغيل الإصدار المكتبي 45052349833](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45052349833) عند commit `b9504ea` |
 | v0.16.0 | النواة 446/12 · مساحة العمل 366/37 على بوابة CI · تحقق تخطي المرآة الصادق | [تشغيل CI 45054712124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712124) · [تشغيل مزامنة المرآة 45054712138](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45054712138) عند commit `1f270d7` |
+| v0.17.0 | النواة 455/12 · مساحة العمل 366/37 على بوابة CI · شهادة سلسلة الأدلة صارت منتجاً (ADR-0010) | [تشغيل CI 45057872188](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872188) · [تشغيل مزامنة المرآة 45057872124](https://github.com/tibatechapp-ship-it/Ali-Algomori/actions/runs/45057872124) عند commit `bb55c92` |
 
 ### استقلال المرآة الثانية (ADR-0009)
 
